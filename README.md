@@ -1,6 +1,4 @@
-# TP-Aviani-Canal-Planificaci-n-de-mesas-de-examen
-
-# TP-Aviani-Canal-Planificaci-n-de-mesas-de-examen
+# TP-Aviani-Canal-Planificacion-de-mesas-de-examen
 
 **Integrantes:** Valentino Aviani · Santiago Cañal
 **Entrega:** 08/11/2026
