@@ -1,4 +1,4 @@
-# TP-Aviani-Canal-Planificaci-n-de-mesas-de-examen
+# TP-Aviani-Canal-Planificacion-de-mesas-de-examen
 
 **Integrantes:** Valentino Aviani · Santiago Cañal
 **Entrega:** 08/11/2026
@@ -280,7 +280,7 @@ Se detalla en el informe (sección "Uso de IA"). Resumen:
 - Entrenar con datos reales de inscripciones.
 - Comparar varios umbrales automáticamente y sugerir el mejor.
 ## 14. Fuentes y licencia
- 
+
 - Librerías: scikit-learn, pandas, networkx, FastAPI, React.
 - _Si se usó un dataset real, citarlo acá._
 - Proyecto académico. _(Agregar licencia si corresponde.)_
