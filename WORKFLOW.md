@@ -2,10 +2,10 @@
 
 ## Estrategia de ramas
 
-Usamos **ramas por ticket** + **Pull Requests** antes de mergear a `main`.
+Usamos **ramas por ticket** + **Pull Requests** antes de mergear a `develop`.
 
 ```
-main          ← rama estable; solo recibe merges desde PRs
+develop          ← rama estable; solo recibe merges desde PRs
 └── feat/T01-estructura-repo
 └── feat/T02-dataset
 └── feat/T03-modelo-predictivo
@@ -37,20 +37,20 @@ test(coloring): agregar test de validación de coloreo
 
 ## Flujo paso a paso
 
-1. Crear rama desde `main`:
+1. Crear rama desde `develop`:
    ```bash
-   git checkout main && git pull
+   git checkout develop && git pull
    git checkout -b feat/T0X-nombre
    ```
 2. Trabajar con commits chicos y descriptivos.
-3. Abrir Pull Request hacia `main` cuando el ticket esté terminado.
+3. Abrir Pull Request hacia `develop` cuando el ticket esté terminado.
 4. El otro integrante revisa y aprueba.
 5. Mergear con **Squash & Merge** o **Merge commit** (acordar uno).
 6. Borrar la rama remota tras el merge.
 
 ## Reglas generales
 
-- No pushear directo a `main`.
+- No pushear directo a `develop`.
 - Cada PR debe tener al menos **1 review** del otro integrante.
-- Resolver conflictos en la rama feature, no en `main`.
-- Mantener `main` siempre en estado funcional (tests pasando).
+- Resolver conflictos en la rama feature, no en `develop`.
+- Mantener `develop` siempre en estado funcional (tests pasando).

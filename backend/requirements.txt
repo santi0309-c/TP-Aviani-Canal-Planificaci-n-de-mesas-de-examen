@@ -1,7 +1,17 @@
+# para instalar todo: pip install -r requirements.txt
+# (acordate de activar el .venv antes, si no instalás en el sistema y eso es un lío)
+#
+# crear el entorno virtual (solo la primera vez):
+#   python -m venv .venv
+#   .venv\Scripts\activate        (windows)
+#   source .venv/bin/activate     (linux/mac)
+
 fastapi>=0.111.0
-uvicorn[standard]>=0.29.0
+uvicorn[standard]>=0.29.0          # el [standard] trae websockets y otras yerbas, no borrar
 pydantic>=2.7.0
 scikit-learn>=1.4.0
 pandas>=2.2.0
 networkx>=3.3
 joblib>=1.4.0
+pytest>=8.0.0
+httpx>=0.27.0
