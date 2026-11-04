@@ -1,0 +1,398 @@
+[
+  {
+    "id": "M01",
+    "nombre": "Álgebra y Geometría Analítica",
+    "anio": 1,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 255
+  },
+  {
+    "id": "M02",
+    "nombre": "Análisis Matemático I",
+    "anio": 1,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 234
+  },
+  {
+    "id": "M03",
+    "nombre": "Física I",
+    "anio": 1,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 261
+  },
+  {
+    "id": "M04",
+    "nombre": "Química General",
+    "anio": 1,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 264
+  },
+  {
+    "id": "M05",
+    "nombre": "Informática General",
+    "anio": 1,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 221
+  },
+  {
+    "id": "M06",
+    "nombre": "Ingeniería y Sociedad",
+    "anio": 1,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 230
+  },
+  {
+    "id": "M07",
+    "nombre": "Sistemas de Representación",
+    "anio": 1,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 252
+  },
+  {
+    "id": "M08",
+    "nombre": "Fundamentos de Programación",
+    "anio": 1,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 245
+  },
+  {
+    "id": "M09",
+    "nombre": "Análisis Matemático II",
+    "anio": 2,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 160
+  },
+  {
+    "id": "M10",
+    "nombre": "Física II",
+    "anio": 2,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 147
+  },
+  {
+    "id": "M11",
+    "nombre": "Probabilidad y Estadística",
+    "anio": 2,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 173
+  },
+  {
+    "id": "M12",
+    "nombre": "Matemática Discreta",
+    "anio": 2,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 172
+  },
+  {
+    "id": "M13",
+    "nombre": "Economía General",
+    "anio": 2,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 161
+  },
+  {
+    "id": "M14",
+    "nombre": "Ciencia de los Materiales",
+    "anio": 2,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 177
+  },
+  {
+    "id": "M15",
+    "nombre": "Estructuras de Datos",
+    "anio": 2,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 167
+  },
+  {
+    "id": "M16",
+    "nombre": "Termodinámica Básica",
+    "anio": 2,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 147
+  },
+  {
+    "id": "M17",
+    "nombre": "Arquitectura de Computadores",
+    "anio": 3,
+    "carreras": [
+      "C1"
+    ],
+    "tamanio": 96
+  },
+  {
+    "id": "M18",
+    "nombre": "Sistemas Operativos",
+    "anio": 3,
+    "carreras": [
+      "C1"
+    ],
+    "tamanio": 76
+  },
+  {
+    "id": "M19",
+    "nombre": "Investigación Operativa",
+    "anio": 3,
+    "carreras": [
+      "C1",
+      "C2"
+    ],
+    "tamanio": 103
+  },
+  {
+    "id": "M20",
+    "nombre": "Gestión de Procesos",
+    "anio": 3,
+    "carreras": [
+      "C2"
+    ],
+    "tamanio": 89
+  },
+  {
+    "id": "M21",
+    "nombre": "Logística y Abastecimiento",
+    "anio": 3,
+    "carreras": [
+      "C2"
+    ],
+    "tamanio": 87
+  },
+  {
+    "id": "M22",
+    "nombre": "Mecánica de Fluidos",
+    "anio": 3,
+    "carreras": [
+      "C3"
+    ],
+    "tamanio": 80
+  },
+  {
+    "id": "M23",
+    "nombre": "Química Orgánica",
+    "anio": 3,
+    "carreras": [
+      "C3"
+    ],
+    "tamanio": 108
+  },
+  {
+    "id": "M24",
+    "nombre": "Fenómenos de Transporte",
+    "anio": 3,
+    "carreras": [
+      "C3"
+    ],
+    "tamanio": 88
+  },
+  {
+    "id": "M25",
+    "nombre": "Redes y Telecomunicaciones",
+    "anio": 4,
+    "carreras": [
+      "C1"
+    ],
+    "tamanio": 44
+  },
+  {
+    "id": "M26",
+    "nombre": "Bases de Datos",
+    "anio": 4,
+    "carreras": [
+      "C1"
+    ],
+    "tamanio": 45
+  },
+  {
+    "id": "M27",
+    "nombre": "Ingeniería de Software",
+    "anio": 4,
+    "carreras": [
+      "C1"
+    ],
+    "tamanio": 58
+  },
+  {
+    "id": "M28",
+    "nombre": "Control de Calidad",
+    "anio": 4,
+    "carreras": [
+      "C2"
+    ],
+    "tamanio": 55
+  },
+  {
+    "id": "M29",
+    "nombre": "Seguridad e Higiene Industrial",
+    "anio": 4,
+    "carreras": [
+      "C2"
+    ],
+    "tamanio": 56
+  },
+  {
+    "id": "M30",
+    "nombre": "Diseño de Plantas Industriales",
+    "anio": 4,
+    "carreras": [
+      "C2",
+      "C3"
+    ],
+    "tamanio": 56
+  },
+  {
+    "id": "M31",
+    "nombre": "Operaciones Unitarias",
+    "anio": 4,
+    "carreras": [
+      "C3"
+    ],
+    "tamanio": 82
+  },
+  {
+    "id": "M32",
+    "nombre": "Reactores Químicos",
+    "anio": 4,
+    "carreras": [
+      "C3"
+    ],
+    "tamanio": 44
+  },
+  {
+    "id": "M33",
+    "nombre": "Inteligencia Artificial",
+    "anio": 5,
+    "carreras": [
+      "C1"
+    ],
+    "tamanio": 22
+  },
+  {
+    "id": "M34",
+    "nombre": "Sistemas Distribuidos y Cloud",
+    "anio": 5,
+    "carreras": [
+      "C1"
+    ],
+    "tamanio": 20
+  },
+  {
+    "id": "M35",
+    "nombre": "Gestión de Proyectos de Software",
+    "anio": 5,
+    "carreras": [
+      "C1"
+    ],
+    "tamanio": 39
+  },
+  {
+    "id": "M36",
+    "nombre": "Dirección Estratégica",
+    "anio": 5,
+    "carreras": [
+      "C2"
+    ],
+    "tamanio": 47
+  },
+  {
+    "id": "M37",
+    "nombre": "Simulación de Sistemas Productivos",
+    "anio": 5,
+    "carreras": [
+      "C2"
+    ],
+    "tamanio": 28
+  },
+  {
+    "id": "M38",
+    "nombre": "Control de Procesos Químicos",
+    "anio": 5,
+    "carreras": [
+      "C3"
+    ],
+    "tamanio": 20
+  },
+  {
+    "id": "M39",
+    "nombre": "Biotecnología Industrial",
+    "anio": 5,
+    "carreras": [
+      "C3"
+    ],
+    "tamanio": 20
+  },
+  {
+    "id": "M40",
+    "nombre": "Proyecto Final Integrador",
+    "anio": 5,
+    "carreras": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "tamanio": 40
+  }
+]
