@@ -113,3 +113,4 @@ Se computaron los coeficientes de correlación de Pearson ($r$) entre todas las 
 2. **Para T08 (Pipeline de Features y Preprocesamiento):**
    * Las variables predictoras candidatas (`cant_estudiantes_compartidos_historico`, `mismo_anio`, `misma_carrera`) no presentan nulos y tienen distribuciones bien definidas.
    * Se requerirá un `StandardScaler` o `RobustScaler` para la variable numérica de compartidos debido a la asimetría y valores extremos, y un `OneHotEncoder` / passthrough booleano para las variables categóricas.
+
