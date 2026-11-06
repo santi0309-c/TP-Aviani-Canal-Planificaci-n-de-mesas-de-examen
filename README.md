@@ -150,12 +150,17 @@ Cada fila es un **par de materias**:
  
 ### Reglas de generación
  
-> Completar con las reglas reales del script. Ejemplo de cómo declararlas:
- 
-- La cantidad de estudiantes compartidos histórica depende del tamaño de las materias, de si son del mismo año (+) y de si son de la misma carrera (++), más ruido.
-- `cant_estudiantes_afectados` ≈ `α · compartidos + β · mismo_anio + γ · misma_carrera + ruido`.
-- `hubo_conflicto = cant_estudiantes_afectados ≥ k`.
-- Semilla fija (`--seed`) para reproducibilidad.
+Las especificaciones formales completas se detallan en [`informe/reglas_dataset.md`](informe/reglas_dataset.md). Resumen de reglas:
+
+- **Estructura académica:** 40 materias en 5 años a lo largo de 3 carreras de ingeniería (con materias de tronco común en 1.º y 2.º año). Total: $\binom{40}{2} = 780$ pares de materias.
+- **Tamaño de materias ($S_i$):** Matrícula piramidal decreciente por año (200-350 en 1.º año hasta 20-50 en 5.º año).
+- **Estudiantes compartidos históricos:** Acotado por $\min(S_1, S_2)$, modulado por afinidad de carrera ($F_{\text{carrera}}$), cercanía temporal ($F_{\text{año}} = \frac{1}{1 + 0.8 \Delta_{\text{año}}}$) y ruido estocástico.
+- **Variable continua a predecir (`cant_estudiantes_afectados`):**
+  $$\text{afectados} = 0.55 \cdot \text{compartidos} + 6.0 \cdot \text{mismo\_anio} + 4.0 \cdot \text{misma\_carrera} + \mathcal{N}(0, 2.5^2)$$
+  Acotado en $[0, \text{compartidos}]$.
+- **Variable binaria a predecir (`hubo_conflicto`):**
+  $$\text{hubo\_conflicto} = (\text{cant\_estudiantes\_afectados} \ge 15)$$
+- Semilla fija (`--seed`) para reproducibilidad garantizada.
 > ⚠️ Como el dataset es sintético, el modelo **va a redescubrir las reglas que pusimos nosotros**. Esto es esperable; las métricas reflejan qué tan bien recupera esa estructura, no el rendimiento sobre datos reales.
  
 ## 6. Modelo predictivo
