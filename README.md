@@ -223,7 +223,9 @@ El algoritmo está implementado a mano en `backend/app/graph/coloring.py`; `netw
 | `GET` | `/conflictos?umbral=τ` | Pares con conflicto predicho ≥ τ |
 | `POST` | `/cronograma` | Construye el grafo y devuelve el coloreo |
 | `GET` | `/metricas` | Métricas del modelo sobre test |
- 
+
+`POST /cronograma` acepta un `umbral` opcional (por defecto `15`, entre `0` y `500`). Devuelve `422` si el umbral no es válido y `503` si faltan el modelo o los datos necesarios para generar el cronograma.
+
 Ejemplo:
  
 ```bash
