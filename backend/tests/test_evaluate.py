@@ -63,9 +63,17 @@ class TestEvaluateExecution:
             out_json = os.path.join(tmpdir, "metricas.json")
             plots_dir = os.path.join(tmpdir, "plots")
 
+            # Garantizar que el modelo exista (en CI *.joblib está ignorado en git)
+            if DEFAULT_MODEL.exists():
+                model_to_use = str(DEFAULT_MODEL)
+            else:
+                from app.ml.train import train
+                model_to_use = os.path.join(tmpdir, "modelo.joblib")
+                train(data_path=str(DEFAULT_DATA), out_path=model_to_use, seed=42)
+
             metrics = evaluate(
                 data_path=str(DEFAULT_DATA),
-                model_path=str(DEFAULT_MODEL),
+                model_path=model_to_use,
                 metrics_out=out_json,
                 plots_dir=plots_dir,
                 seed=42,

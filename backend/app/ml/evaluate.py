@@ -230,7 +230,9 @@ def evaluate(
     if not os.path.exists(data_path):
         raise FileNotFoundError(f"No se encontró el dataset en: {data_path}")
     if not os.path.exists(model_path):
-        raise FileNotFoundError(f"No se encontró el modelo en: {model_path}")
+        print(f"Modelo no encontrado en '{model_path}'. Entrenando modelo automáticamente...")
+        from app.ml.train import train
+        train(data_path=data_path, out_path=model_path, seed=seed)
 
     df = load_dataset(data_path)
     split = split_data(df, seed=seed)
