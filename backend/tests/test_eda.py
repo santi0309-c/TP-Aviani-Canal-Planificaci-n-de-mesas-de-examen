@@ -35,3 +35,4 @@ def test_run_eda_missing_dataset_raises():
         fake_path = os.path.join(tmpdir, "inexistente.csv")
         with pytest.raises(FileNotFoundError):
             run_eda(data_path=fake_path, out_dir=tmpdir)
+
