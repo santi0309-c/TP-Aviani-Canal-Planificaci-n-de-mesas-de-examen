@@ -106,6 +106,9 @@ def predict(model: Any, X: Union[pd.DataFrame, np.ndarray, List[Dict[str, Any]]]
     """
     Genera predicciones continuas de estudiantes afectados a partir del modelo y las features.
 
+    Valida explícitamente la presencia de las features requeridas para evitar errores
+    crípticos de scikit-learn si la entrada no tiene las columnas correctas.
+
     Parámetros:
         model: Pipeline de scikit-learn o estimador compatible con .predict().
         X: Matriz, lista de diccionarios o DataFrame con las features predictoras.
@@ -116,14 +119,28 @@ def predict(model: Any, X: Union[pd.DataFrame, np.ndarray, List[Dict[str, Any]]]
     if isinstance(X, list):
         X = pd.DataFrame(X)
 
-    if isinstance(X, pd.DataFrame):
-        # Si el DataFrame contiene las columnas requeridas, seleccionar el subset de features
-        if all(col in X.columns for col in FEATURE_COLUMNS):
-            X_input = X[FEATURE_COLUMNS]
-        else:
-            X_input = X
+    if isinstance(X, np.ndarray):
+        if X.ndim == 1:
+            X = X.reshape(1, -1)
+        if X.shape[1] != len(FEATURE_COLUMNS):
+            raise ValueError(
+                f"La matriz NumPy debe tener exactamente {len(FEATURE_COLUMNS)} columnas correspondientes a "
+                f"{FEATURE_COLUMNS}, pero se recibieron {X.shape[1]} columnas."
+            )
+        X_input = pd.DataFrame(X, columns=FEATURE_COLUMNS)
+    elif isinstance(X, pd.DataFrame):
+        missing_cols = [col for col in FEATURE_COLUMNS if col not in X.columns]
+        if missing_cols:
+            raise ValueError(
+                f"El DataFrame no contiene las columnas requeridas para la predicción. "
+                f"Columnas faltantes: {missing_cols}. Columnas esperadas: {FEATURE_COLUMNS}."
+            )
+        X_input = X[FEATURE_COLUMNS]
     else:
-        X_input = X
+        raise TypeError(
+            f"Tipo de entrada no soportado para inferencia: {type(X)}. "
+            f"Se espera pd.DataFrame, np.ndarray o list[dict]."
+        )
 
     preds = model.predict(X_input)
     preds = np.asarray(preds, dtype=float)

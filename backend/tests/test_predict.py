@@ -3,6 +3,7 @@ test_predict.py — Pruebas unitarias para la carga, persistencia y predicción 
 """
 
 import json
+from math import comb
 import os
 from pathlib import Path
 import tempfile
@@ -33,6 +34,19 @@ def reset_cache():
     clear_model_cache()
     yield
     clear_model_cache()
+
+
+@pytest.fixture
+def expected_total_pairs() -> int:
+    """Calcula dinámicamente la cantidad esperada de pares comb(n_materias, 2)."""
+    materias_path = Path(__file__).resolve().parents[1] / "data" / "materias.json"
+    if materias_path.exists():
+        with open(materias_path, "r", encoding="utf-8") as f:
+            n_materias = len(json.load(f))
+    else:
+        df = load_dataset(DATA_PATH)
+        n_materias = len(set(df["materia_id_1"]).union(set(df["materia_id_2"])))
+    return comb(n_materias, 2)
 
 
 class TestLoadModel:
@@ -92,15 +106,15 @@ class TestLoadModel:
 class TestPredecirPares:
     """Verifica la función principal de inferencia sobre pares de materias."""
 
-    def test_predecir_pares_acceptance_criterion(self):
+    def test_predecir_pares_acceptance_criterion(self, expected_total_pairs: int):
         """
         Criterio de aceptación T12:
-        Dado el dataset institucional (40 materias), predecir_pares() debe devolver
-        exactamente 780 predicciones (comb(40, 2)).
+        Dado el dataset institucional, predecir_pares() debe devolver exactamente
+        comb(n_materias, 2) predicciones derivadas dinámicamente.
         """
         predictions = predecir_pares(data_path=DATA_PATH)
         assert isinstance(predictions, list)
-        assert len(predictions) == 780
+        assert len(predictions) == expected_total_pairs
 
     def test_predecir_pares_structure_and_types(self):
         """Cada registro devuelto debe contener los campos requeridos por el grafo y valores >= 0."""
@@ -175,11 +189,53 @@ class TestPredictGeneric:
         assert len(y_pred) == 1
         assert y_pred[0] > 0.0
 
+    def test_predict_numpy_array_input(self):
+        """Debe aceptar una matriz NumPy de forma (n, 3) correspondiente a las 3 features."""
+        model = load_model(MODEL_PATH)
+        sample_array = np.array([
+            [60.0, 1.0, 1.0],
+            [10.0, 0.0, 0.0],
+        ])
+        y_pred = predict(model, sample_array)
+        assert isinstance(y_pred, np.ndarray)
+        assert len(y_pred) == 2
+        assert y_pred[0] > y_pred[1]
+        assert (y_pred >= 0.0).all()
+
+    def test_predict_missing_feature_columns_raises_explicit_value_error(self):
+        """Si falta alguna columna requerida en el DataFrame, debe lanzar ValueError con mensaje descriptivo."""
+        model = load_model(MODEL_PATH)
+        incomplete_df = pd.DataFrame([
+            {"cant_estudiantes_compartidos_historico": 50, "mismo_anio": True}
+        ])
+        with pytest.raises(ValueError, match="Columnas faltantes.*misma_carrera"):
+            predict(model, incomplete_df)
+
+    def test_predict_completely_wrong_columns_raises_value_error(self):
+        """Si el DataFrame tiene columnas totalmente distintas, debe lanzar ValueError explícito."""
+        model = load_model(MODEL_PATH)
+        wrong_df = pd.DataFrame([{"columna_a": 1, "columna_b": 2}])
+        with pytest.raises(ValueError, match="El DataFrame no contiene las columnas requeridas"):
+            predict(model, wrong_df)
+
+    def test_predict_numpy_array_wrong_columns_raises_value_error(self):
+        """Si una matriz NumPy tiene un número incorrecto de columnas, debe lanzar ValueError."""
+        model = load_model(MODEL_PATH)
+        wrong_array = np.array([[10.0, 1.0]])  # 2 columnas en vez de 3
+        with pytest.raises(ValueError, match="La matriz NumPy debe tener exactamente 3 columnas"):
+            predict(model, wrong_array)
+
+    def test_predict_invalid_type_raises_type_error(self):
+        """Tipos de datos no soportados deben lanzar TypeError explícito."""
+        model = load_model(MODEL_PATH)
+        with pytest.raises(TypeError, match="Tipo de entrada no soportado"):
+            predict(model, 12345)
+
 
 class TestCliExport:
     """Verifica la exportación de predicciones por CLI."""
 
-    def test_cli_json_export(self):
+    def test_cli_json_export(self, expected_total_pairs: int):
         """Debe permitir exportar predicciones a un archivo JSON."""
         with tempfile.TemporaryDirectory() as tmpdir:
             out_file = os.path.join(tmpdir, "predicciones.json")
@@ -191,5 +247,5 @@ class TestCliExport:
             assert os.path.exists(out_file)
             with open(out_file, "r", encoding="utf-8") as f:
                 loaded = json.load(f)
-            assert len(loaded) == 780
+            assert len(loaded) == expected_total_pairs
             assert "conflicto_predicho" in loaded[0]
