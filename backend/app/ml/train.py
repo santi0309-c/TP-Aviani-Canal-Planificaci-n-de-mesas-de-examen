@@ -12,7 +12,19 @@ Uso por CLI:
 
 import argparse
 import os
+from pathlib import Path
+import sys
 from typing import Any, Dict, Tuple
+
+# Rutas predeterminadas robustas relativas a la ubicación del script
+BASE_DIR = Path(__file__).resolve().parent  # backend/app/ml
+BACKEND_DIR = BASE_DIR.parents[1]           # backend
+DEFAULT_DATA = BACKEND_DIR / "data" / "pares_materias.csv"
+DEFAULT_MODEL = BACKEND_DIR / "models" / "modelo.joblib"
+
+# Asegurar que backend/ esté en el sys.path si se invoca desde fuera de backend/
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
 
 import joblib
 import numpy as np
@@ -169,11 +181,22 @@ def format_table(results_dict: Dict[str, Dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
-def train(data_path: str, out_path: str, seed: int = DEFAULT_SEED) -> Dict[str, Any]:
+def train(
+    data_path: str = str(DEFAULT_DATA),
+    out_path: str = str(DEFAULT_MODEL),
+    seed: int = DEFAULT_SEED,
+) -> Dict[str, Any]:
     """Punto de entrada principal para entrenar, comparar y persistir el mejor modelo."""
     print("=" * 70)
     print("          ENTRENAMIENTO Y COMPARACIÓN DE MODELOS (T09)")
     print("=" * 70)
+
+    # Resolución robusta de la ruta de datos si se pasa relativa
+    if not os.path.exists(data_path):
+        alt_path = BACKEND_DIR / data_path
+        if alt_path.exists():
+            data_path = str(alt_path)
+
     print(f"Cargando dataset desde: {data_path}")
 
     df = load_dataset(data_path)
@@ -225,12 +248,12 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--data",
-        default="data/pares_materias.csv",
+        default=str(DEFAULT_DATA),
         help="Ruta al dataset CSV de pares de materias.",
     )
     parser.add_argument(
         "--out",
-        default="models/modelo.joblib",
+        default=str(DEFAULT_MODEL),
         help="Ruta donde guardar el modelo seleccionado.",
     )
     parser.add_argument(
