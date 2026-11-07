@@ -42,6 +42,7 @@ def build_conflict_graph(
     if isinstance(predictions, pd.DataFrame):
         predictions = predictions.to_dict(orient="records")
 
+
     G = nx.Graph()
     umbral_float = float(umbral)
 
