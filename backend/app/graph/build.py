@@ -21,7 +21,7 @@ DEFAULT_MATERIAS_JSON = BACKEND_DIR / "data" / "materias.json"
 
 
 def build_conflict_graph(
-    predictions: List[Dict[str, Any]],
+    predictions: Union[List[Dict[str, Any]], pd.DataFrame],
     umbral: float,
     materias: Optional[List[Union[str, Dict[str, Any]]]] = None,
 ) -> nx.Graph:
@@ -29,7 +29,7 @@ def build_conflict_graph(
     Construye un grafo no dirigido (nx.Graph) de conflictos entre materias.
 
     Parámetros:
-        predictions: Lista de registros con las predicciones por par de materias.
+        predictions: Lista de registros o DataFrame de pandas con las predicciones por par.
                      Acepta claves 'materia_1'/'materia_id_1', 'materia_2'/'materia_id_2'
                      y 'conflicto_predicho'/'cant_estudiantes_afectados'/'peso'/'weight'.
         umbral: Valor mínimo de conflicto estimado para crear una arista.
@@ -39,6 +39,9 @@ def build_conflict_graph(
     Retorna:
         nx.Graph: Grafo no dirigido con las materias como nodos y aristas con atributo 'weight'.
     """
+    if isinstance(predictions, pd.DataFrame):
+        predictions = predictions.to_dict(orient="records")
+
     G = nx.Graph()
     umbral_float = float(umbral)
 
