@@ -2,6 +2,7 @@
 test_features.py — Pruebas unitarias del pipeline de features y partición (Ticket T08).
 """
 
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
@@ -22,7 +23,7 @@ from app.ml.features import (
 # Fixtures
 # ---------------------------------------------------------------------------
 
-DATA_PATH = "data/pares_materias.csv"
+DATA_PATH = str(Path(__file__).resolve().parents[1] / "data" / "pares_materias.csv")
 
 
 @pytest.fixture
