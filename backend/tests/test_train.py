@@ -4,6 +4,7 @@ test_train.py — Pruebas unitarias para el entrenamiento y comparación de mode
 
 import os
 import tempfile
+from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
@@ -17,7 +18,7 @@ from app.ml.train import (
     train_and_compare,
 )
 
-DATA_PATH = "data/pares_materias.csv"
+DATA_PATH = str(Path(__file__).resolve().parents[1] / "data" / "pares_materias.csv")
 
 
 @pytest.fixture
