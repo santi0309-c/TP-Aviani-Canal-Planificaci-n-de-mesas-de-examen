@@ -1,0 +1,259 @@
+{
+  "metadatos": {
+    "n_test": 117,
+    "umbral": 15,
+    "semilla": 42
+  },
+  "estadisticas_generales": {
+    "sesgo": {
+      "media_residuos": -0.1856,
+      "desvio_residuos": 2.1313,
+      "cant_subestimados": 61,
+      "pct_subestimados": 52.14,
+      "cant_sobreestimados": 56,
+      "pct_sobreestimados": 47.86,
+      "cant_exactos": 0
+    },
+    "desglose_mismo_anio": {
+      "false": {
+        "count": 100,
+        "mean": 1.5806,
+        "std": 1.2782
+      },
+      "true": {
+        "count": 17,
+        "mean": 2.2735,
+        "std": 1.5016
+      }
+    },
+    "desglose_misma_carrera": {
+      "false": {
+        "count": 30,
+        "mean": 1.1517,
+        "std": 0.5884
+      },
+      "true": {
+        "count": 87,
+        "mean": 1.8639,
+        "std": 1.4605
+      }
+    },
+    "desglose_volumen": {
+      "Bajo (<15)": {
+        "count": 65,
+        "mean": 1.2982,
+        "std": 0.9401
+      },
+      "Medio [15, 50)": {
+        "count": 37,
+        "mean": 2.0824,
+        "std": 1.4969
+      },
+      "Alto (≥50)": {
+        "count": 15,
+        "mean": 2.352,
+        "std": 1.7992
+      }
+    }
+  },
+  "top_10_errores": [
+    {
+      "par": "M18-M19",
+      "materia_1": "Sistemas Operativos",
+      "materia_2": "Investigación Operativa",
+      "compartidos": 48,
+      "mismo_anio": true,
+      "misma_carrera": true,
+      "y_real": 40,
+      "y_pred": 33.53,
+      "residuo": 6.47,
+      "error_abs": 6.47
+    },
+    {
+      "par": "M05-M11",
+      "materia_1": "Informática General",
+      "materia_2": "Probabilidad y Estadística",
+      "compartidos": 75,
+      "mismo_anio": false,
+      "misma_carrera": true,
+      "y_real": 40,
+      "y_pred": 46.12,
+      "residuo": -6.12,
+      "error_abs": 6.12
+    },
+    {
+      "par": "M16-M20",
+      "materia_1": "Termodinámica Básica",
+      "materia_2": "Gestión de Procesos",
+      "compartidos": 32,
+      "mismo_anio": false,
+      "misma_carrera": true,
+      "y_real": 16,
+      "y_pred": 21.3,
+      "residuo": -5.3,
+      "error_abs": 5.3
+    },
+    {
+      "par": "M03-M05",
+      "materia_1": "Física I",
+      "materia_2": "Informática General",
+      "compartidos": 135,
+      "mismo_anio": true,
+      "misma_carrera": true,
+      "y_real": 89,
+      "y_pred": 83.75,
+      "residuo": 5.25,
+      "error_abs": 5.25
+    },
+    {
+      "par": "M30-M37",
+      "materia_1": "Diseño de Plantas Industriales",
+      "materia_2": "Simulación de Sistemas Productivos",
+      "compartidos": 17,
+      "mismo_anio": false,
+      "misma_carrera": true,
+      "y_real": 17,
+      "y_pred": 12.64,
+      "residuo": 4.36,
+      "error_abs": 4.36
+    },
+    {
+      "par": "M02-M13",
+      "materia_1": "Análisis Matemático I",
+      "materia_2": "Economía General",
+      "compartidos": 56,
+      "mismo_anio": false,
+      "misma_carrera": true,
+      "y_real": 31,
+      "y_pred": 35.15,
+      "residuo": -4.15,
+      "error_abs": 4.15
+    },
+    {
+      "par": "M09-M18",
+      "materia_1": "Análisis Matemático II",
+      "materia_2": "Sistemas Operativos",
+      "compartidos": 33,
+      "mismo_anio": false,
+      "misma_carrera": true,
+      "y_real": 26,
+      "y_pred": 21.88,
+      "residuo": 4.12,
+      "error_abs": 4.12
+    },
+    {
+      "par": "M21-M40",
+      "materia_1": "Logística y Abastecimiento",
+      "materia_2": "Proyecto Final Integrador",
+      "compartidos": 9,
+      "mismo_anio": false,
+      "misma_carrera": true,
+      "y_real": 4,
+      "y_pred": 8.03,
+      "residuo": -4.03,
+      "error_abs": 4.03
+    },
+    {
+      "par": "M22-M38",
+      "materia_1": "Mecánica de Fluidos",
+      "materia_2": "Control de Procesos Químicos",
+      "compartidos": 2,
+      "mismo_anio": false,
+      "misma_carrera": true,
+      "y_real": 0,
+      "y_pred": 3.99,
+      "residuo": -3.99,
+      "error_abs": 3.99
+    },
+    {
+      "par": "M11-M17",
+      "materia_1": "Probabilidad y Estadística",
+      "materia_2": "Arquitectura de Computadores",
+      "compartidos": 35,
+      "mismo_anio": false,
+      "misma_carrera": true,
+      "y_real": 27,
+      "y_pred": 23.03,
+      "residuo": 3.97,
+      "error_abs": 3.97
+    }
+  ],
+  "casos_frontera": {
+    "falsos_negativos": [
+      {
+        "par": "M30-M37",
+        "materia_1": "Diseño de Plantas Industriales",
+        "materia_2": "Simulación de Sistemas Productivos",
+        "compartidos": 17,
+        "mismo_anio": false,
+        "misma_carrera": true,
+        "y_real": 17,
+        "y_pred": 12.64,
+        "residuo": 4.36,
+        "error_abs": 4.36
+      },
+      {
+        "par": "M15-M29",
+        "materia_1": "Estructuras de Datos",
+        "materia_2": "Seguridad e Higiene Industrial",
+        "compartidos": 18,
+        "mismo_anio": false,
+        "misma_carrera": true,
+        "y_real": 16,
+        "y_pred": 13.22,
+        "residuo": 2.78,
+        "error_abs": 2.78
+      },
+      {
+        "par": "M17-M25",
+        "materia_1": "Arquitectura de Computadores",
+        "materia_2": "Redes y Telecomunicaciones",
+        "compartidos": 17,
+        "mismo_anio": false,
+        "misma_carrera": true,
+        "y_real": 15,
+        "y_pred": 12.64,
+        "residuo": 2.36,
+        "error_abs": 2.36
+      },
+      {
+        "par": "M02-M18",
+        "materia_1": "Análisis Matemático I",
+        "materia_2": "Sistemas Operativos",
+        "compartidos": 19,
+        "mismo_anio": false,
+        "misma_carrera": true,
+        "y_real": 16,
+        "y_pred": 13.8,
+        "residuo": 2.2,
+        "error_abs": 2.2
+      }
+    ],
+    "falsos_positivos": [
+      {
+        "par": "M08-M22",
+        "materia_1": "Fundamentos de Programación",
+        "materia_2": "Mecánica de Fluidos",
+        "compartidos": 24,
+        "mismo_anio": false,
+        "misma_carrera": true,
+        "y_real": 14,
+        "y_pred": 16.68,
+        "residuo": -2.68,
+        "error_abs": 2.68
+      },
+      {
+        "par": "M19-M28",
+        "materia_1": "Investigación Operativa",
+        "materia_2": "Control de Calidad",
+        "compartidos": 23,
+        "mismo_anio": false,
+        "misma_carrera": true,
+        "y_real": 14,
+        "y_pred": 16.11,
+        "residuo": -2.11,
+        "error_abs": 2.11
+      }
+    ]
+  }
+}
