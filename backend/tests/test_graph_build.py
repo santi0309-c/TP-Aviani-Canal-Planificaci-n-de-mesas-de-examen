@@ -113,3 +113,4 @@ def test_graph_serialization_to_dict():
     assert len(data["nodos"]) == 2
     assert len(data["aristas"]) == 1
     assert data["aristas"][0]["peso"] == 20.0
+
