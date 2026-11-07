@@ -172,3 +172,4 @@ def test_group_by_turno_and_apply_to_graph():
     turnos = group_by_turno(coloring)
     total_materias = sum(len(materias) for materias in turnos.values())
     assert total_materias == 3
+

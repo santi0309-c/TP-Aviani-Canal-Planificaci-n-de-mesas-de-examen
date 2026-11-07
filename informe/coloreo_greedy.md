@@ -91,3 +91,4 @@ Sobre el grafo sintético del proyecto (40 materias, umbral institucional $\tau 
 - **Cota Teórica Máxima:** $\le 29$ turnos
 - **Turnos obtenidos con Welsh-Powell:** **13 turnos** (muy por debajo de la cota máxima teórica $\Delta + 1$).
 - **Validación:** 100% libre de conflictos adyacentes (`validate_coloring` = True).
+
