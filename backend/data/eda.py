@@ -7,10 +7,21 @@ Uso:
 
 import argparse
 import os
+from pathlib import Path
+
+import matplotlib
+
+# Configurar backend no interactivo para entornos sin display (CI / Docker)
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+
+BASE_DIR = Path(__file__).resolve().parent
+REPO_ROOT = BASE_DIR.parents[1]
+DEFAULT_DATA = str(BASE_DIR / "pares_materias.csv")
+DEFAULT_OUT = str(REPO_ROOT / "informe" / "capturas" / "eda")
 
 
 def configurar_estilo():
@@ -251,12 +262,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Script de Análisis Exploratorio de Datos (EDA).")
     parser.add_argument(
         "--data",
-        default="data/pares_materias.csv",
+        default=DEFAULT_DATA,
         help="Ruta al archivo CSV del dataset.",
     )
     parser.add_argument(
         "--out-dir",
-        default="../informe/capturas/eda",
+        default=DEFAULT_OUT,
         help="Directorio donde se guardarán los gráficos generados.",
     )
     args = parser.parse_args()
