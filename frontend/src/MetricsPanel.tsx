@@ -38,13 +38,13 @@ export function MetricsPanel({ cronograma, isUpdating = false }: MetricsPanelPro
     const totalAristas = cronograma.cantidad_aristas
     const cantidadTurnos = cronograma.cantidad_turnos
 
-    const estudiantesProtegidos = cronograma.aristas.reduce(
+    const impactoConflictosPares = cronograma.aristas.reduce(
       (sum, edge) => sum + edge.peso,
       0,
     )
 
     const pesoPromedioConflicto =
-      totalAristas > 0 ? estudiantesProtegidos / totalAristas : 0
+      totalAristas > 0 ? impactoConflictosPares / totalAristas : 0
 
     const densidadGrafo =
       totalParesPosibles > 0 ? (totalAristas / totalParesPosibles) * 100 : 0
@@ -62,7 +62,7 @@ export function MetricsPanel({ cronograma, isUpdating = false }: MetricsPanelPro
       totalAristas,
       cantidadTurnos,
       totalParesPosibles,
-      estudiantesProtegidos: Math.round(estudiantesProtegidos),
+      impactoConflictosPares: Math.round(impactoConflictosPares),
       pesoPromedioConflicto: pesoPromedioConflicto.toFixed(1),
       densidadGrafo: densidadGrafo.toFixed(1),
       promedioMateriasTurno: promedioMateriasTurno.toFixed(1),
@@ -134,7 +134,7 @@ export function MetricsPanel({ cronograma, isUpdating = false }: MetricsPanelPro
               <div className="kpi-grid">
                 {/* Turnos */}
                 <div className="kpi-card kpi-card-highlight">
-                  <span className="kpi-label">Turnos Necesarios</span>
+                  <span className="kpi-label">Turnos Asignados (Coloreo Greedy)</span>
                   <div className="kpi-value-row">
                     <span className="kpi-number text-accent-violet">
                       {kpis.cantidadTurnos}
@@ -142,7 +142,7 @@ export function MetricsPanel({ cronograma, isUpdating = false }: MetricsPanelPro
                     <span className="kpi-unit">turnos</span>
                   </div>
                   <span className="kpi-help">
-                    Número cromático obtenido con Welsh-Powell para evitar colisiones.
+                    Asignación generada mediante el algoritmo greedy Welsh-Powell; produce un coloreo válido sin solapamientos, pero no garantiza el mínimo teórico.
                   </span>
                 </div>
 
@@ -178,17 +178,17 @@ export function MetricsPanel({ cronograma, isUpdating = false }: MetricsPanelPro
                   </span>
                 </div>
 
-                {/* Estudiantes Protegidos */}
+                {/* Conflictos Evitados (Suma por Pares) */}
                 <div className="kpi-card">
-                  <span className="kpi-label">Estudiantes Protegidos</span>
+                  <span className="kpi-label">Conflictos Evitados (Suma por Pares)</span>
                   <div className="kpi-value-row">
                     <span className="kpi-number text-accent-emerald">
-                      {kpis.estudiantesProtegidos}
+                      {kpis.impactoConflictosPares}
                     </span>
-                    <span className="kpi-unit">estudiantes</span>
+                    <span className="kpi-unit">estudiantes-conflicto</span>
                   </div>
                   <span className="kpi-help">
-                    Suma ponderada de conflictos evitados al separar turnos.
+                    Impacto estimado agregado sumando los pesos de aristas activas. No representa personas únicas, ya que un estudiante puede figurar en varios pares.
                   </span>
                 </div>
 
