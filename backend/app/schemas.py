@@ -186,3 +186,54 @@ class CronogramaResponse(BaseModel):
         description="Alias de compatibilidad con validadores externos",
         examples=[True],
     )
+
+
+# ---------------------------------------------------------------------------
+# Schemas para /metricas (T19)
+# ---------------------------------------------------------------------------
+
+class MetricasMetadata(BaseModel):
+    """Metadatos del modelo y del conjunto de test usado en la evaluación."""
+
+    modelo: str
+    semilla: int = Field(..., ge=0)
+    n_test: int = Field(..., ge=0)
+
+
+class MetricasRegresion(BaseModel):
+    """Métricas de evaluación de la regresión."""
+
+    mae: float = Field(..., ge=0.0)
+    rmse: float = Field(..., ge=0.0)
+    r2: float
+
+
+class MetricasClasificacion(BaseModel):
+    """Métricas de clasificación derivadas del umbral de conflicto."""
+
+    umbral: float = Field(..., ge=0.0)
+    accuracy: float = Field(..., ge=0.0, le=1.0)
+    precision: float = Field(..., ge=0.0, le=1.0)
+    recall: float = Field(..., ge=0.0, le=1.0)
+    f1: float = Field(..., ge=0.0, le=1.0)
+
+
+class MatrizConfusion(BaseModel):
+    """Conteos de la matriz de confusión sobre el conjunto de test."""
+
+    verdaderos_negativos: int = Field(..., ge=0)
+    falsos_positivos: int = Field(..., ge=0)
+    falsos_negativos: int = Field(..., ge=0)
+    verdaderos_positivos: int = Field(..., ge=0)
+    total: int = Field(..., ge=0)
+
+
+class MetricasResponse(BaseModel):
+    """Respuesta completa del endpoint GET /metricas."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    metadatos: MetricasMetadata
+    regresion: MetricasRegresion
+    clasificacion: MetricasClasificacion
+    matriz_confusion: MatrizConfusion

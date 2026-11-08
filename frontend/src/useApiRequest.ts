@@ -1,36 +1,50 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { ApiError } from './api'
 
 interface ApiRequestState<T> {
   data: T | null
   loading: boolean
   error: string | null
+  status: number | null
 }
 
-export function useApiRequest<T>(initialLoading = false) {
+type ApiRequest<T> = (signal: AbortSignal) => Promise<T>
+
+export function useApiRequest<T>(initialRequest?: ApiRequest<T>) {
   const [state, setState] = useState<ApiRequestState<T>>({
     data: null,
-    loading: initialLoading,
+    loading: initialRequest !== undefined,
     error: null,
+    status: null,
   })
-  const requestId = useRef(0)
+  const activeController = useRef<AbortController | null>(null)
 
   useEffect(() => {
     return () => {
-      requestId.current += 1
+      activeController.current?.abort()
+      activeController.current = null
     }
   }, [])
 
-  const execute = useCallback(async (request: () => Promise<T>) => {
-    const currentRequestId = ++requestId.current
-    setState((current) => ({ ...current, loading: true, error: null }))
+  const execute = useCallback(async (request: ApiRequest<T>): Promise<T> => {
+    activeController.current?.abort()
+    const controller = new AbortController()
+    activeController.current = controller
+    setState((current) => ({
+      ...current,
+      loading: true,
+      error: null,
+      status: null,
+    }))
 
     try {
-      const data = await request()
-      if (requestId.current === currentRequestId) {
-        setState({ data, loading: false, error: null })
+      const data = await request(controller.signal)
+      if (activeController.current === controller) {
+        setState({ data, loading: false, error: null, status: null })
       }
+      return data
     } catch (error: unknown) {
-      if (requestId.current === currentRequestId) {
+      if (activeController.current === controller && !controller.signal.aborted) {
         setState({
           data: null,
           loading: false,
@@ -38,10 +52,31 @@ export function useApiRequest<T>(initialLoading = false) {
             error instanceof Error
               ? error.message
               : 'Ocurrió un error inesperado al consultar la API.',
+          status: error instanceof ApiError ? error.status : null,
         })
       }
+      throw error
     }
   }, [])
+
+  useEffect(() => {
+    if (!initialRequest) {
+      return
+    }
+
+    let active = true
+    void Promise.resolve().then(() => {
+      if (active) {
+        void execute(initialRequest).catch(() => {
+          // The hook exposes the failure through its error and status state.
+        })
+      }
+    })
+
+    return () => {
+      active = false
+    }
+  }, [execute, initialRequest])
 
   return { ...state, execute }
 }

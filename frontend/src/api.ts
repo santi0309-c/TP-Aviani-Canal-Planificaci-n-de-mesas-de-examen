@@ -33,13 +33,26 @@ async function getErrorMessage(response: Response): Promise<string> {
 
   try {
     const body: unknown = JSON.parse(responseText)
-    if (
-      typeof body === 'object' &&
-      body !== null &&
-      'detail' in body &&
-      typeof body.detail === 'string'
-    ) {
-      return body.detail
+    if (typeof body === 'object' && body !== null && 'detail' in body) {
+      if (typeof body.detail === 'string') {
+        return body.detail
+      }
+
+      if (Array.isArray(body.detail)) {
+        return body.detail
+          .map((detail) => {
+            if (
+              typeof detail === 'object' &&
+              detail !== null &&
+              'msg' in detail &&
+              typeof detail.msg === 'string'
+            ) {
+              return detail.msg
+            }
+            return JSON.stringify(detail) ?? String(detail)
+          })
+          .join(', ')
+      }
     }
   } catch {
     return responseText
@@ -58,7 +71,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response
   try {
     response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers })
-  } catch {
+  } catch (error: unknown) {
+    if (init?.signal?.aborted) {
+      throw error
+    }
     throw new ApiError(
       'No se pudo conectar con el backend. Verifique que esté corriendo.',
       0,
@@ -71,33 +87,41 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   try {
     return (await response.json()) as T
-  } catch {
+  } catch (error: unknown) {
+    if (init?.signal?.aborted) {
+      throw error
+    }
     throw new ApiError('El servidor devolvió una respuesta JSON inválida.', response.status)
   }
 }
 
-export function getHealth(): Promise<HealthResponse> {
-  return request<HealthResponse>('/health')
+export function getHealth(signal?: AbortSignal): Promise<HealthResponse> {
+  return request<HealthResponse>('/health', { signal })
 }
 
-export function getMaterias(): Promise<Materia[]> {
-  return request<Materia[]>('/materias')
+export function getMaterias(signal?: AbortSignal): Promise<Materia[]> {
+  return request<Materia[]>('/materias', { signal })
 }
 
-export function getConflictos(umbral = 15): Promise<ConflictosResponse> {
+export function getConflictos(
+  umbral = 15,
+  signal?: AbortSignal,
+): Promise<ConflictosResponse> {
   const query = new URLSearchParams({ umbral: String(umbral) })
-  return request<ConflictosResponse>(`/conflictos?${query}`)
+  return request<ConflictosResponse>(`/conflictos?${query}`, { signal })
 }
 
 export function postCronograma(
   body: CronogramaRequest = {},
+  signal?: AbortSignal,
 ): Promise<CronogramaResponse> {
   return request<CronogramaResponse>('/cronograma', {
     method: 'POST',
     body: JSON.stringify(body),
+    signal,
   })
 }
 
-export function getMetricas(): Promise<MetricasResponse> {
-  return request<MetricasResponse>('/metricas')
+export function getMetricas(signal?: AbortSignal): Promise<MetricasResponse> {
+  return request<MetricasResponse>('/metricas', { signal })
 }

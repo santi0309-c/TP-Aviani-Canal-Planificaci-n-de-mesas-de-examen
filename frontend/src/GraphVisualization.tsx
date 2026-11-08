@@ -116,23 +116,16 @@ export function GraphVisualization({
     [externalUmbral, onUmbralChange],
   )
 
-  const { data, loading, error, execute } = useApiRequest<CronogramaResponse>(true)
+  const { data, loading, error, execute } = useApiRequest<CronogramaResponse>()
   const graphElement = useRef<HTMLDivElement>(null)
   const cyInstanceRef = useRef<Core | null>(null)
   const [graphError, setGraphError] = useState<string | null>(null)
 
   // Cargar cronograma cada vez que cambie el umbral estabilizado
   useEffect(() => {
-    let active = true
-    void Promise.resolve().then(() => {
-      if (active) {
-        return execute(() => postCronograma({ umbral: activeUmbral }))
-      }
+    void execute((signal) => postCronograma({ umbral: activeUmbral }, signal)).catch(() => {
+      // El estado del hook useApiRequest expone los errores
     })
-
-    return () => {
-      active = false
-    }
   }, [activeUmbral, execute])
 
   const invalidColoring = useMemo(
@@ -303,7 +296,13 @@ export function GraphVisualization({
             <button
               className="btn btn-primary"
               type="button"
-              onClick={() => void execute(() => postCronograma({ umbral: activeUmbral }))}
+              onClick={() =>
+                void execute((signal) =>
+                  postCronograma({ umbral: activeUmbral }, signal),
+                ).catch(() => {
+                  // Error administrado por useApiRequest
+                })
+              }
             >
               Reintentar
             </button>
