@@ -287,7 +287,7 @@ export function App() {
           <div className="stack-card">
             <span className="stack-role">Frontend</span>
             <h4>React 19 + TypeScript + Cytoscape</h4>
-            <p>SPA moderna con visualización interactiva y reactividad dual a 60 FPS.</p>
+            <p>SPA interactiva con visualización del grafo y cronograma en tiempo real.</p>
           </div>
         </div>
       </main>
