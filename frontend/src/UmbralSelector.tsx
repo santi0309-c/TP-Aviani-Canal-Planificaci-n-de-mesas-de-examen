@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { useDebounce } from './useDebounce'
+import { useCallback, useState } from 'react'
+import { useDebouncedCallback } from './useDebounce'
 
 export interface UmbralSelectorProps {
   value: number
@@ -43,35 +43,31 @@ export function UmbralSelector({
   const [prevValue, setPrevValue] = useState<number>(value)
   const [localValue, setLocalValue] = useState<number>(value)
 
+  const debouncedOnChange = useDebouncedCallback(onChange, 350)
+
   // Sincronizar estado durante el render si cambia la prop externa (patrón oficial de React 19)
   if (value !== prevValue) {
     setPrevValue(value)
     setLocalValue(value)
+    debouncedOnChange.cancel()
   }
-
-  const debouncedValue = useDebounce<number>(localValue, 350)
-
-  // Propagar el valor estabilizado tras el debounce
-  useEffect(() => {
-    if (debouncedValue !== value) {
-      onChange(debouncedValue)
-    }
-  }, [debouncedValue, value, onChange])
 
   const handleSliderChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const nextValue = Number(e.target.value)
       setLocalValue(nextValue)
+      debouncedOnChange.run(nextValue)
     },
-    [],
+    [debouncedOnChange],
   )
 
   const handlePresetClick = useCallback(
     (presetValue: number) => {
       setLocalValue(presetValue)
-      onChange(presetValue)
+      // Ejecutar inmediatamente y cancelar cualquier debounce pendiente del slider
+      debouncedOnChange.flush(presetValue)
     },
-    [onChange],
+    [debouncedOnChange],
   )
 
   const percentage = Math.min(
@@ -99,12 +95,19 @@ export function UmbralSelector({
             τ = <strong>{localValue}</strong>
             <span className="umbral-unit">estudiantes</span>
           </span>
+
           {isUpdating && (
-            <span className="umbral-spinner" title="Actualizando grafo..." />
+            <div
+              className="umbral-spinner"
+              title="Recalculando grafo y coloreo..."
+              role="status"
+              aria-label="Cargando"
+            />
           )}
         </div>
       </div>
 
+      {/* Slider interactivo */}
       <div className="slider-wrapper">
         <input
           id="umbral-slider"
@@ -113,47 +116,50 @@ export function UmbralSelector({
           max={max}
           step={step}
           value={localValue}
-          onChange={handleSliderChange}
           disabled={disabled}
+          onChange={handleSliderChange}
           className="umbral-range-slider"
-          style={{
-            background: `linear-gradient(to right, var(--accent-primary) 0%, var(--accent-primary) ${percentage}%, rgba(255, 255, 255, 0.08) ${percentage}%, rgba(255, 255, 255, 0.08) 100%)`,
-          }}
-          aria-label="Selector de umbral de conflicto para exámenes"
+          aria-label="Umbral de conflicto para considerar materias superpuestas"
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={localValue}
-          aria-valuetext={`${localValue} estudiantes`}
+          style={{
+            background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${percentage}%, rgba(255, 255, 255, 0.1) ${percentage}%, rgba(255, 255, 255, 0.1) 100%)`,
+          }}
         />
+
         <div className="slider-ticks" aria-hidden="true">
-          <span>{min} (Todos en conflicto)</span>
+          <span>{min} (Máx. conflictos)</span>
           <span>50</span>
-          <span>{max} (Sin aristas)</span>
+          <span>{max} (Mín. conflictos)</span>
         </div>
       </div>
 
+      {/* Presets de acceso rápido */}
       <div className="umbral-presets-wrapper">
-        <span className="presets-label">Valores de referencia:</span>
+        <span className="presets-label">Presets:</span>
         <div className="presets-buttons" role="group" aria-label="Presets de umbral">
-          {PRESETS.map((p) => {
-            const isSelected = localValue === p.value
+          {PRESETS.map((preset) => {
+            const isActive = localValue === preset.value
             return (
               <button
-                key={p.value}
+                key={preset.value}
                 type="button"
-                className={`btn-preset ${isSelected ? 'preset-active' : ''}`}
-                onClick={() => handlePresetClick(p.value)}
+                className={`btn-preset ${isActive ? 'preset-active' : ''}`}
+                onClick={() => handlePresetClick(preset.value)}
                 disabled={disabled}
-                title={`${p.label} (${p.hint})`}
+                title={`Fijar umbral en ${preset.value} (${preset.label})`}
               >
-                {p.label} <strong>({p.value})</strong>
+                <span>{preset.label}</span>
+                <code>{preset.hint}</code>
               </button>
             )
           })}
         </div>
       </div>
 
-      <div className="tradeoff-info" role="status" aria-live="polite">
+      {/* Tradeoff explicativo */}
+      <div className="tradeoff-info" role="note">
         <span className="tradeoff-icon">ℹ</span>
         <p className="tradeoff-text">{getTradeOffDescription(localValue)}</p>
       </div>

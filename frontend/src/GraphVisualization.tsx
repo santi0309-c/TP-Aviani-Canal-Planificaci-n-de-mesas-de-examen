@@ -197,7 +197,7 @@ export function GraphVisualization({
     }
 
     let active = true
-    if (graphInstance.current) {
+    if (graphInstance.current && !graphInstance.current.destroyed()) {
       updateGraph(graphInstance.current, data)
     } else {
       void import('cytoscape')
