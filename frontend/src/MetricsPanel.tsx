@@ -142,7 +142,7 @@ export function MetricsPanel({ cronograma, isUpdating = false }: MetricsPanelPro
                     <span className="kpi-unit">turnos</span>
                   </div>
                   <span className="kpi-help">
-                    Número cromático obtenido con Welsh-Powell para evitar colisiones.
+                    Turnos asignados mediante el algoritmo Welsh-Powell para evitar colisiones.
                   </span>
                 </div>
 

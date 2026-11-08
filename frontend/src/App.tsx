@@ -231,9 +231,9 @@ export function App() {
                 </div>
                 <div className="guide-step">
                   <div className="step-badge">4. Planificación Final</div>
-                  <h4>Cronograma Óptimo</h4>
+                  <h4>Asignación de Turnos</h4>
                   <p>
-                    El número cromático resultante determina la cantidad mínima de turnos de examen necesarios sin superposición de fechas.
+                    El sistema asigna turnos válidos sin solapamientos mediante un algoritmo greedy (Welsh-Powell). Al tratarse de una heurística, produce una solución factible pero no garantiza una cantidad mínima de turnos.
                   </p>
                 </div>
               </div>
