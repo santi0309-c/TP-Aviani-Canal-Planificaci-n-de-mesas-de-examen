@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { API_BASE_URL, getHealth } from './api'
+import { GraphVisualization } from './GraphVisualization'
 import type { HealthResponse } from './types'
 import { useApiRequest } from './useApiRequest'
 import './App.css'
@@ -36,9 +37,9 @@ export function App() {
           <span className="badge-divider">•</span>
           <span className="badge-sub">Planificación de Mesas de Examen</span>
         </div>
-        <h1 className="main-title">Panel de Control &amp; Estado</h1>
+        <h1 className="main-title">Planificación de Mesas de Examen</h1>
         <p className="main-subtitle">
-          Verificación de comunicación en tiempo real entre el Frontend (Vite + React) y el Backend (FastAPI).
+          Grafo de conflictos entre materias y estado de conexión con la API.
         </p>
       </header>
 
@@ -167,6 +168,8 @@ export function App() {
             </button>
           </div>
         </div>
+
+        <GraphVisualization />
 
         {/* Tech Stack Cards */}
         <div className="stack-grid">
