@@ -102,6 +102,29 @@ def test_brooks_theorem_bound():
     assert validate_coloring(G, coloring)
 
 
+@pytest.mark.parametrize(
+    ("node_count", "edge_probability", "seed"),
+    [
+        (0, 0.3, 0),
+        (1, 0.5, 1),
+        (12, 0.0, 2),
+        (20, 0.15, 42),
+        (30, 0.5, 73),
+        (16, 1.0, 99),
+    ],
+)
+def test_coloring_random_graphs_is_valid(node_count, edge_probability, seed):
+    """El coloreo greedy debe ser válido en grafos aleatorios de distintas densidades."""
+    graph = nx.gnp_random_graph(node_count, edge_probability, seed=seed)
+
+    coloring = greedy_coloring(graph)
+
+    assert set(coloring) == set(graph.nodes)
+    assert validate_coloring(graph, coloring)
+    assert all(isinstance(turno, int) and turno >= 0 for turno in coloring.values())
+    assert all(coloring[u] != coloring[v] for u, v in graph.edges)
+
+
 def test_coloring_real_project_dataset():
     """
     CRITERIO DE ACEPTACIÓN T14:
@@ -172,4 +195,3 @@ def test_group_by_turno_and_apply_to_graph():
     turnos = group_by_turno(coloring)
     total_materias = sum(len(materias) for materias in turnos.values())
     assert total_materias == 3
-

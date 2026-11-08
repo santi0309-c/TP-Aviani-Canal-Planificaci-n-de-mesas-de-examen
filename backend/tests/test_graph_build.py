@@ -56,18 +56,21 @@ def test_monotonicity_increasing_threshold_never_adds_edges():
 
     umbrales = [0.0, 5.0, 10.0, 15.0, 25.0, 40.0, 70.0, 100.0, 200.0]
     cantidades_aristas = []
+    conjuntos_aristas = []
 
     for tau in umbrales:
         G = build_conflict_graph(mock_preds, umbral=tau, materias=materias)
         cantidades_aristas.append(G.number_of_edges())
+        conjuntos_aristas.append({frozenset(edge) for edge in G.edges})
         # La cantidad de nodos siempre se mantiene en 40
         assert G.number_of_nodes() == 40
 
-    # Verificar que cada cantidad de aristas sea <= que la anterior
-    for i in range(len(cantidades_aristas) - 1):
-        assert (
-            cantidades_aristas[i] >= cantidades_aristas[i + 1]
-        ), f"Falló monotonía entre umbrales {umbrales[i]} y {umbrales[i+1]}"
+    for i in range(len(umbrales) - 1):
+        assert conjuntos_aristas[i + 1] <= conjuntos_aristas[i], (
+            f"Al subir el umbral de {umbrales[i]} a {umbrales[i + 1]} "
+            "se agregaron aristas o se conservó una arista que debía filtrarse."
+        )
+        assert cantidades_aristas[i + 1] <= cantidades_aristas[i]
 
 
 def test_graph_is_undirected():
@@ -113,4 +116,3 @@ def test_graph_serialization_to_dict():
     assert len(data["nodos"]) == 2
     assert len(data["aristas"]) == 1
     assert data["aristas"][0]["peso"] == 20.0
-
