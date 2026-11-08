@@ -14,11 +14,11 @@
 1. [Descripción del problema](#1-descripción-del-problema)
 2. [Cómo funciona (visión general)](#2-cómo-funciona-visión-general)
 3. [Estructura del repositorio](#3-estructura-del-repositorio)
-4. [Instalación y ejecución](#4-instalación-y-ejecución)
+4. [InstalaciÃ³n y ejecuciÃ³n](#4-instalaciÃ³n-y-ejecuciÃ³n)
 5. [Dataset](#5-dataset)
 6. [Modelo predictivo](#6-modelo-predictivo)
 7. [Algoritmo de grafos](#7-algoritmo-de-grafos)
-8. [Integración modelo → grafo](#8-integración-modelo--grafo)
+8. [IntegraciÃ³n modelo â†’ grafo](#8-integraciÃ³n-modelo--grafo)
 9. [API del backend](#9-api-del-backend)
 10. [Frontend](#10-frontend)
 11. [Tests](#11-tests)
@@ -178,8 +178,8 @@ Cada fila es un **par de materias**:
 | Campo | Tipo | Descripción |
 |---|---|---|
 | `materia_id_1`, `materia_id_2` | id | par de materias |
-| `cant_estudiantes_compartidos_historico` | numérico | estudiantes que cursaron/rindieron ambas históricamente |
-| `mismo_anio` | booleano | ambas pertenecen al mismo año de la carrera |
+| `cant_estudiantes_compartidos_historico` | numÃ©rico | estudiantes que cursaron/rindieron ambas histÃ³ricamente |
+| `mismo_anio` | booleano | ambas pertenecen al mismo aÃ±o de la carrera |
 | `misma_carrera` | booleano | ambas pertenecen a la misma carrera |
 | `cant_estudiantes_afectados` | numérico | **variable a predecir** (regresión) |
 | `hubo_conflicto` | booleano | **variable a predecir** (clasificación) |
@@ -243,7 +243,7 @@ Se asigna a cada materia el menor turno (color) que no esté usado por ninguna d
 ordenar nodos por grado decreciente (Welsh-Powell)
 para cada nodo v en ese orden:
     colores_vecinos = { color[u] : u vecino de v, u ya coloreado }
-    color[v] = menor entero ≥ 0 que no esté en colores_vecinos
+    color[v] = menor entero â‰¥ 0 que no estÃ© en colores_vecinos
 ```
 
 - **Orden de los nodos:** grado decreciente (cantidad de conflictos). En caso de empate, se desempata por suma de pesos de aristas incidentes (estudiantes afectados totales), y si sigue empatado, por ID de materia para garantizar determinismo.
@@ -310,7 +310,7 @@ Las llamadas HTTP se centralizan en `frontend/src/api.ts`, con tipos compartidos
 
 El grafo de conflictos se visualiza con Cytoscape.js: cada materia se colorea por turno y el grosor de las aristas representa el peso del conflicto. La visualización valida que los extremos de cada arista tengan turnos distintos, muestra el peso exacto al pasar el cursor o seleccionar una arista y permite reajustar el encuadre. El componente acepta un umbral configurable y actualiza los elementos del grafo sin reconstruir el layout.
 
-El selector de umbral (`frontend/src/UmbralSelector.tsx`) permite variar $\tau$ interactivamente con debounce (350 ms) y botones de acceso rápido (presets: 5, 15, 30, 50), actualizando el grafo, el coloreo y la cantidad de turnos sin congelar la interfaz.
+El selector de umbral (`frontend/src/UmbralSelector.tsx`) permite variar $\tau$ interactivamente con debounce (350 ms) y botones de acceso rÃ¡pido (presets: 5, 15, 30, 50), actualizando el grafo, el coloreo y la cantidad de turnos sin congelar la interfaz.
 
 La vista de cronograma (`frontend/src/CronogramaGrid.tsx`) organiza las materias en columnas por turno, sincronizada exactamente con los colores determinísticos del grafo (`frontend/src/colors.ts`). Muestra la cantidad de materias por turno, métricas globales de distribución y un buscador rápido para localizar materias específicas.
 
