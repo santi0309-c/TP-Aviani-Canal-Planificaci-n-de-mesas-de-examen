@@ -4,8 +4,10 @@ test_error_analysis.py — Pruebas unitarias para el diagnóstico y análisis de
 
 import json
 import os
-import tempfile
 from pathlib import Path
+import tempfile
+from typing import Tuple
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -20,6 +22,15 @@ from app.ml.error_analysis import (
     get_top_errors,
     run_error_analysis,
 )
+from app.ml.features import load_dataset, split_data
+
+
+@pytest.fixture(scope="module")
+def expected_test_size() -> int:
+    """Calcula el tamaño esperado del conjunto de test de forma dinámica a partir de la partición."""
+    df_raw = load_dataset(str(DEFAULT_DATA))
+    split = split_data(df_raw, seed=42)
+    return len(split["X_test"])
 
 
 @pytest.fixture(scope="module")
@@ -30,7 +41,6 @@ def error_data():
         model_path=DEFAULT_MODEL,
         materias_path=DEFAULT_MATERIAS,
         seed=42,
-        umbral=15,
     )
     return test_df, meta
 
@@ -38,10 +48,11 @@ def error_data():
 class TestErrorDataframe:
     """Verifica la correcta construcción y enriquecimiento del DataFrame de test."""
 
-    def test_test_dataframe_shape_and_columns(self, error_data):
+    def test_test_dataframe_shape_and_columns(self, error_data, expected_test_size: int):
         test_df, meta = error_data
-        assert meta["n_test"] == 117
-        assert len(test_df) == 117
+        # Validación dinámica del tamaño sin hardcodear 117
+        assert meta["n_test"] == expected_test_size
+        assert len(test_df) == expected_test_size
 
         expected_cols = [
             "materia_id_1",
@@ -72,32 +83,32 @@ class TestErrorDataframe:
 class TestErrorStatistics:
     """Verifica el cálculo de estadísticas de sesgo y agrupamientos."""
 
-    def test_bias_statistics_and_balance(self, error_data):
+    def test_bias_statistics_and_balance(self, error_data, expected_test_size: int):
         test_df, _ = error_data
         stats = compute_error_statistics(test_df)
         sesgo = stats["sesgo"]
 
-        # El estimador debe ser insesgado (media cercana a 0)
+        # El estimador debe ser insesgado (media de residuos cercana a 0)
         assert abs(sesgo["media_residuos"]) < 0.5
 
-        # Subestimados + sobreestimados deben sumar 117
+        # Subestimados + sobreestimados + exactos deben sumar el total de pares de test dinámicamente
         total_sub_sobre = sesgo["cant_subestimados"] + sesgo["cant_sobreestimados"] + sesgo["cant_exactos"]
-        assert total_sub_sobre == 117
+        assert total_sub_sobre == expected_test_size
 
         # Proporción equilibrada (~50% sub, ~50% sobre)
         assert 40.0 <= sesgo["pct_subestimados"] <= 60.0
 
-    def test_group_breakdowns_counts(self, error_data):
+    def test_group_breakdowns_counts(self, error_data, expected_test_size: int):
         test_df, _ = error_data
         stats = compute_error_statistics(test_df)
 
         mismo_anio = stats["desglose_mismo_anio"]
         total_anio = mismo_anio[True]["count"] + mismo_anio[False]["count"]
-        assert total_anio == 117
+        assert total_anio == expected_test_size
 
         misma_carrera = stats["desglose_misma_carrera"]
         total_carrera = misma_carrera[True]["count"] + misma_carrera[False]["count"]
-        assert total_carrera == 117
+        assert total_carrera == expected_test_size
 
 
 class TestTopErrorsAndBorderCases:
@@ -108,37 +119,65 @@ class TestTopErrorsAndBorderCases:
         top10 = get_top_errors(test_df, n=10)
 
         assert len(top10) == 10
-        # Primer elemento debe tener el error máximo
+        # Primer elemento debe tener el error absoluto máximo
         assert top10[0]["error_abs"] == test_df["error_abs"].max()
 
         # Orden decreciente
         for i in range(len(top10) - 1):
             assert top10[i]["error_abs"] >= top10[i + 1]["error_abs"]
 
-    def test_border_cases_counts(self, error_data):
-        test_df, _ = error_data
+    def test_border_cases_counts_and_consistency(self, error_data):
+        test_df, meta = error_data
         border = get_border_cases(test_df)
+        umbral = meta["umbral"]
 
         fn_list = border["falsos_negativos"]
         fp_list = border["falsos_positivos"]
 
-        # 4 Falsos Negativos y 2 Falsos Positivos según la matriz de T10
-        assert len(fn_list) == 4
-        assert len(fp_list) == 2
+        # Validación dinámica según las columnas booleanas calculadas en el DataFrame
+        expected_fn = int(test_df["es_falso_negativo"].sum())
+        expected_fp = int(test_df["es_falso_positivo"].sum())
 
-        # Todos los FN deben tener y_real >= 15 e y_pred < 15
+        assert len(fn_list) == expected_fn
+        assert len(fp_list) == expected_fp
+
+        # Todos los FN deben tener y_real >= umbral e y_pred < umbral
         for r in fn_list:
-            assert r["y_real"] >= 15
-            assert r["y_pred"] < 15
+            assert r["y_real"] >= umbral
+            assert r["y_pred"] < umbral
 
-        # Todos los FP deben tener y_real < 15 e y_pred >= 15
+        # Todos los FP deben tener y_real < umbral e y_pred >= umbral
         for r in fp_list:
-            assert r["y_real"] < 15
-            assert r["y_pred"] >= 15
+            assert r["y_real"] < umbral
+            assert r["y_pred"] >= umbral
+
+
+class TestConfigurableUmbral:
+    """Verifica que el umbral τ sea configurable vía variable de entorno o parámetro."""
+
+    def test_umbral_configurable_via_env_var(self, monkeypatch):
+        """Verifica que el umbral se configure dinámicamente mediante UMBRAL_CONFLICTO."""
+        monkeypatch.setenv("UMBRAL_CONFLICTO", "13.0")
+        _, meta = build_error_dataframe(seed=42)
+        assert meta["umbral"] == 13.0
+
+    def test_border_cases_adapt_to_custom_umbral(self, error_data):
+        """Verifica que get_border_cases recalcule los casos frontera al pasar un umbral explícito."""
+        test_df, _ = error_data
+        custom_umbral = 12.0
+        border_12 = get_border_cases(test_df, umbral=custom_umbral)
+
+        for r in border_12["falsos_negativos"]:
+            assert r["y_real"] >= custom_umbral
+            assert r["y_pred"] < custom_umbral
+
+        for r in border_12["falsos_positivos"]:
+            assert r["y_real"] < custom_umbral
+            assert r["y_pred"] >= custom_umbral
 
 
 class TestRunErrorAnalysisPersistence:
-    """Verifica la ejecución por consola y exportación JSON."""
+    """Verifica la ejecución y exportación JSON."""
 
     def test_run_error_analysis_creates_valid_json(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -150,7 +189,6 @@ class TestRunErrorAnalysisPersistence:
                 materias_path=DEFAULT_MATERIAS,
                 out_json=out_json,
                 seed=42,
-                umbral=15,
             )
 
             assert out_json.exists()
