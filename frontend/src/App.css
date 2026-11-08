@@ -280,6 +280,19 @@ body {
     rgba(8, 12, 21, 0.72);
 }
 
+.graph-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.graph-fit-button {
+  flex: 0 0 auto;
+}
+
 .graph-legend {
   display: flex;
   flex-wrap: wrap;
@@ -593,6 +606,11 @@ body {
   .graph-canvas {
     min-height: 360px;
     height: 55vh;
+  }
+
+  .graph-toolbar {
+    align-items: flex-start;
+    flex-direction: column-reverse;
   }
 
   .legend-edge {

@@ -1,8 +1,16 @@
-import type { Core, ElementDefinition } from 'cytoscape'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import type { Core, EdgeSingular, ElementDefinition } from 'cytoscape'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { postCronograma } from './api'
 import type { CronogramaResponse } from './types'
 import { useApiRequest } from './useApiRequest'
+
+interface EdgeDetails {
+  source: string
+  target: string
+  sourceId: string
+  targetId: string
+  weight: number
+}
 
 function turnoColor(turno: number): string {
   const hue = (turno * 137.508) % 360
@@ -58,6 +66,20 @@ function coloringError(cronograma: CronogramaResponse): string | null {
 
 function buildElements(cronograma: CronogramaResponse): ElementDefinition[] {
   const maxWeight = Math.max(1, ...cronograma.aristas.map((arista) => arista.peso))
+  const namesById = new Map(
+    cronograma.nodos.map((node) => [node.id, node.nombre]),
+  )
+  const edges: ElementDefinition[] = cronograma.aristas.map((arista) => ({
+    data: {
+      id: `edge-${encodeURIComponent(arista.source)}-${encodeURIComponent(arista.target)}`,
+      source: arista.source,
+      target: arista.target,
+      sourceLabel: namesById.get(arista.source) ?? arista.source,
+      targetLabel: namesById.get(arista.target) ?? arista.target,
+      weight: arista.peso,
+      lineWidth: 1 + (Math.sqrt(arista.peso) / Math.sqrt(maxWeight)) * 5,
+    },
+  }))
   const nodes: ElementDefinition[] = cronograma.nodos.map((nodo) => ({
     data: {
       id: nodo.id,
@@ -65,35 +87,76 @@ function buildElements(cronograma: CronogramaResponse): ElementDefinition[] {
       color: turnoColor(nodo.turno),
     },
   }))
-  const edges: ElementDefinition[] = cronograma.aristas.map((arista, index) => ({
-    data: {
-      id: `edge-${index}`,
-      source: arista.source,
-      target: arista.target,
-      lineWidth: 1 + (Math.sqrt(arista.peso) / Math.sqrt(maxWeight)) * 5,
-    },
-  }))
 
   return [...edges, ...nodes]
 }
 
-export function GraphVisualization() {
-  const { data, loading, error, execute } = useApiRequest<CronogramaResponse>(true)
-  const graphElement = useRef<HTMLDivElement>(null)
-  const [graphError, setGraphError] = useState<string | null>(null)
+function edgeDetails(edge: EdgeSingular): EdgeDetails {
+  const sourceLabel: unknown = edge.data('sourceLabel')
+  const targetLabel: unknown = edge.data('targetLabel')
+  const weight: unknown = edge.data('weight')
 
-  useEffect(() => {
-    let active = true
-    void Promise.resolve().then(() => {
-      if (active) {
-        return execute(() => postCronograma())
+  return {
+    source: typeof sourceLabel === 'string' ? sourceLabel : edge.source().id(),
+    target: typeof targetLabel === 'string' ? targetLabel : edge.target().id(),
+    sourceId: edge.source().id(),
+    targetId: edge.target().id(),
+    weight: typeof weight === 'number' ? weight : 0,
+  }
+}
+
+function updateGraph(instance: Core, cronograma: CronogramaResponse): void {
+  const nodesById = new Map(cronograma.nodos.map((node) => [node.id, node]))
+  const elements = buildElements(cronograma)
+  const edges = elements.filter((element) => 'source' in element.data)
+  const extent = instance.extent()
+  const centerX = (extent.x1 + extent.x2) / 2
+  const centerY = (extent.y1 + extent.y2) / 2
+
+  instance.batch(() => {
+    instance.edges().remove()
+    instance.nodes().forEach((node) => {
+      const updatedNode = nodesById.get(node.id())
+      if (!updatedNode) {
+        node.remove()
+        return
       }
+
+      node.data({
+        label: updatedNode.nombre,
+        color: turnoColor(updatedNode.turno),
+      })
+      nodesById.delete(node.id())
     })
 
-    return () => {
-      active = false
-    }
-  }, [execute])
+    const newNodes: ElementDefinition[] = [...nodesById.values()].map((node, index) => ({
+      data: {
+        id: node.id,
+        label: node.nombre,
+        color: turnoColor(node.turno),
+      },
+      position: {
+        x: centerX + Math.cos(index) * 40,
+        y: centerY + Math.sin(index) * 40,
+      },
+    }))
+
+    instance.add([...newNodes, ...edges])
+  })
+  instance.resize()
+}
+
+export function GraphVisualization({ umbral = 15 }: { umbral?: number }) {
+  const loadCronograma = useCallback(
+    (signal: AbortSignal) => postCronograma({ umbral }, signal),
+    [umbral],
+  )
+  const { data, loading, error, status, execute } =
+    useApiRequest<CronogramaResponse>(loadCronograma)
+  const graphElement = useRef<HTMLDivElement>(null)
+  const graphInstance = useRef<Core | null>(null)
+  const [graphError, setGraphError] = useState<string | null>(null)
+  const [selectedEdge, setSelectedEdge] = useState<EdgeDetails | null>(null)
 
   const invalidColoring = useMemo(
     () => (data ? coloringError(data) : null),
@@ -106,74 +169,95 @@ export function GraphVisualization() {
     }
 
     let active = true
-    let instance: Core | undefined
+    if (graphInstance.current) {
+      updateGraph(graphInstance.current, data)
+    } else {
+      void import('cytoscape')
+        .then(({ default: cytoscape }) => {
+          if (!active || !graphElement.current) {
+            return
+          }
 
-    void import('cytoscape')
-      .then(({ default: cytoscape }) => {
-        if (!active || !graphElement.current) {
-          return
-        }
+          const instance = cytoscape({
+            container: graphElement.current,
+            elements: buildElements(data),
+            style: [
+              {
+                selector: 'node',
+                style: {
+                  'background-color': 'data(color)',
+                  'border-color': '#f8fafc',
+                  'border-width': 1,
+                  color: '#f8fafc',
+                  label: 'data(label)',
+                  'font-size': 9,
+                  'font-weight': 600,
+                  'text-wrap': 'wrap',
+                  'text-max-width': '110px',
+                  'text-valign': 'center',
+                  'text-halign': 'center',
+                  width: 110,
+                  height: 52,
+                  padding: '10px',
+                  'text-outline-color': '#101522',
+                  'text-outline-width': 2,
+                },
+              },
+              {
+                selector: 'edge',
+                style: {
+                  width: 'data(lineWidth)',
+                  'line-color': '#94a3b8',
+                  opacity: 0.48,
+                  'curve-style': 'bezier',
+                },
+              },
+            ],
+            layout: {
+              name: 'cose',
+              animate: true,
+              animationDuration: 500,
+              fit: true,
+              padding: 40,
+              nodeRepulsion: 30000,
+              idealEdgeLength: 110,
+            },
+            minZoom: 0.2,
+            maxZoom: 3,
+          })
 
-        instance = cytoscape({
-          container: graphElement.current,
-          elements: buildElements(data),
-          style: [
-            {
-              selector: 'node',
-              style: {
-                'background-color': 'data(color)',
-                'border-color': '#f8fafc',
-                'border-width': 1,
-                color: '#f8fafc',
-                label: 'data(label)',
-                'font-size': 9,
-                'font-weight': 600,
-                'text-wrap': 'wrap',
-                'text-max-width': '110px',
-                'text-valign': 'center',
-                'text-halign': 'center',
-                width: 110,
-                height: 52,
-                padding: '10px',
-                'text-outline-color': '#101522',
-                'text-outline-width': 2,
-              },
-            },
-            {
-              selector: 'edge',
-              style: {
-                width: 'data(lineWidth)',
-                'line-color': '#94a3b8',
-                opacity: 0.48,
-                'curve-style': 'bezier',
-              },
-            },
-          ],
-          layout: {
-            name: 'cose',
-            animate: true,
-            animationDuration: 500,
-            fit: true,
-            padding: 40,
-            nodeRepulsion: 30000,
-            idealEdgeLength: 110,
-          },
-          minZoom: 0.2,
-          maxZoom: 3,
+          instance.on('mouseover', 'edge', (event) => {
+            setSelectedEdge(edgeDetails(event.target))
+          })
+          instance.on('mouseout', 'edge', () => setSelectedEdge(null))
+          instance.on('tap', 'edge', (event) => {
+            setSelectedEdge(edgeDetails(event.target))
+          })
+          graphInstance.current = instance
         })
-
-      })
-      .catch(() => {
-        if (active) {
-          setGraphError('No se pudo iniciar la visualización interactiva del grafo.')
-        }
-      })
+        .catch(() => {
+          if (active) {
+            setGraphError('No se pudo iniciar la visualización interactiva del grafo.')
+          }
+        })
+    }
 
     return () => {
       active = false
-      instance?.destroy()
     }
   }, [data, invalidColoring])
+
+  useEffect(
+    () => () => {
+      graphInstance.current?.destroy()
+      graphInstance.current = null
+    },
+    [],
+  )
+
+  const fitGraph = useCallback(() => {
+    graphInstance.current?.fit(undefined, 40)
+  }, [])
 
   const turnos = useMemo(
     () =>
@@ -182,6 +266,14 @@ export function GraphVisualization() {
         : [],
     [data],
   )
+  const displayedEdge = selectedEdge && data?.aristas.some(
+    (edge) =>
+      edge.source === selectedEdge.sourceId &&
+      edge.target === selectedEdge.targetId &&
+      edge.peso === selectedEdge.weight,
+  )
+    ? selectedEdge
+    : null
 
   return (
     <section className="card glass-card graph-card" aria-labelledby="graph-title">
@@ -194,13 +286,13 @@ export function GraphVisualization() {
         </div>
         {data && (
           <span className="status-pill pill-success">
-            {data.cantidad_nodos} materias · {data.cantidad_aristas} conflictos
+            {data.cantidad_nodos} materias · {data.cantidad_aristas} conflictos · τ = {data.umbral}
           </span>
         )}
       </div>
 
       <div className="card-body">
-        {loading && (
+        {loading && !data && (
           <div className="state-container state-loading" role="status">
             <div className="spinner" />
             <p>Generando el grafo de conflictos...</p>
@@ -213,11 +305,12 @@ export function GraphVisualization() {
             <div className="state-details">
               <h3>No se pudo cargar el grafo</h3>
               <p>{error}</p>
+              {status !== null && <small>Código HTTP {status}</small>}
             </div>
             <button
               className="btn btn-primary"
               type="button"
-              onClick={() => void execute(() => postCronograma())}
+              onClick={() => void execute(loadCronograma).catch(() => {})}
             >
               Reintentar
             </button>
@@ -250,14 +343,35 @@ export function GraphVisualization() {
           </div>
         )}
 
-        {!loading && !error && !invalidColoring && !graphError && data && data.nodos.length > 0 && (
+        <div
+          className="graph-canvas"
+          ref={graphElement}
+          style={{
+            display:
+              data && !invalidColoring && !graphError && data.nodos.length > 0
+                ? undefined
+                : 'none',
+          }}
+          role="img"
+          aria-label={`Grafo con ${data?.cantidad_nodos ?? 0} materias y ${data?.cantidad_aristas ?? 0} conflictos`}
+        />
+
+        {!error && !invalidColoring && !graphError && data && data.nodos.length > 0 && (
           <>
-            <div
-              className="graph-canvas"
-              ref={graphElement}
-              role="img"
-              aria-label={`Grafo con ${data.cantidad_nodos} materias y ${data.cantidad_aristas} conflictos`}
-            />
+            <div className="graph-toolbar">
+              <span aria-live="polite">
+                {displayedEdge
+                  ? `${displayedEdge.source} ↔ ${displayedEdge.target}: ${displayedEdge.weight.toFixed(2)} estudiantes estimados`
+                  : 'Pasá el cursor o seleccioná una arista para ver el conflicto exacto.'}
+              </span>
+              <button
+                className="btn btn-primary graph-fit-button"
+                type="button"
+                onClick={fitGraph}
+              >
+                Ajustar vista
+              </button>
+            </div>
             <div className="graph-legend" aria-label="Leyenda de turnos">
               <strong>Turnos</strong>
               {turnos.map((turno) => (
