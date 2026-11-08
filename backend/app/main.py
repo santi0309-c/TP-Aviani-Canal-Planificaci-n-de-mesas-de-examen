@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import ValidationError
 
 from app.schemas import (
     AristaCronograma,
@@ -20,6 +21,7 @@ from app.schemas import (
     ConflictosResponse,
     CronogramaRequest,
     CronogramaResponse,
+    MetricasResponse,
     MateriaSchema,
     NodoCronograma,
 )
@@ -28,6 +30,7 @@ from app.schemas import (
 BASE_DIR = Path(__file__).resolve().parent      # backend/app
 BACKEND_DIR = BASE_DIR.parent                   # backend
 MATERIAS_JSON_PATH = BACKEND_DIR / "data" / "materias.json"
+METRICAS_JSON_PATH = BACKEND_DIR / "models" / "metricas.json"
 
 # Variables para almacenamiento en caché en memoria
 _MATERIAS_CACHE: Optional[List[Dict[str, Any]]] = None
@@ -60,6 +63,31 @@ def get_cached_predictions() -> List[Dict[str, Any]]:
 
         _PREDICCIONES_CACHE = predecir_pares(as_dict=True)
     return _PREDICCIONES_CACHE
+
+
+def load_metrics() -> MetricasResponse:
+    """Lee y valida las métricas de evaluación guardadas en metricas.json."""
+    try:
+        with open(METRICAS_JSON_PATH, "r", encoding="utf-8") as metrics_file:
+            metrics_data = json.load(metrics_file)
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Las métricas todavía no están disponibles.",
+        ) from exc
+    except json.JSONDecodeError as exc:
+        raise HTTPException(
+            status_code=500,
+            detail="El archivo de métricas contiene JSON inválido.",
+        ) from exc
+
+    try:
+        return MetricasResponse.model_validate(metrics_data)
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=500,
+            detail="El archivo de métricas no cumple con el formato esperado.",
+        ) from exc
 
 
 # Instancia principal de la aplicación FastAPI
@@ -148,6 +176,22 @@ def get_conflictos(
         total_conflictos=len(conflictos_filtrados),
         conflictos=conflictos_filtrados,
     )
+
+
+@app.get(
+    "/metricas",
+    response_model=MetricasResponse,
+    tags=["metricas"],
+    summary="Obtener métricas de evaluación del modelo",
+    description="Devuelve las métricas de regresión y clasificación calculadas sobre el conjunto de test.",
+    responses={
+        500: {"description": "El archivo de métricas está corrupto o tiene un formato inválido."},
+        503: {"description": "El archivo de métricas no está disponible."},
+    },
+)
+def get_metricas() -> MetricasResponse:
+    """Devuelve las métricas de evaluación persistidas por el proceso de evaluación."""
+    return load_metrics()
 
 
 # ---------------------------------------------------------------------------
