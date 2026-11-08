@@ -100,13 +100,58 @@ class TestEndpointCronogramaMonotonicityAndEdgeCases:
         d_25 = r_25.json()
         d_50 = r_50.json()
 
-        # Monotonía en aristas
+        edges_10 = {
+            frozenset((edge["source"], edge["target"]))
+            for edge in d_10["aristas"]
+        }
+        edges_25 = {
+            frozenset((edge["source"], edge["target"]))
+            for edge in d_25["aristas"]
+        }
+        edges_50 = {
+            frozenset((edge["source"], edge["target"]))
+            for edge in d_50["aristas"]
+        }
+
+        # Al subir el umbral, las aristas deben ser un subconjunto de las anteriores.
+        assert edges_25 <= edges_10
+        assert edges_50 <= edges_25
         assert d_10["cantidad_aristas"] >= d_25["cantidad_aristas"] >= d_50["cantidad_aristas"]
 
         # Cada cronograma debe respetar las restricciones de su propio grafo.
         assert d_10["es_valido"] is True
         assert d_25["es_valido"] is True
         assert d_50["es_valido"] is True
+
+    @pytest.mark.parametrize("umbral", [0.0, 15.0, 400.0])
+    def test_cronograma_counts_and_turnos_match_serialized_data(self, umbral):
+        """Los conteos y grupos por turno deben coincidir con nodos y aristas retornados."""
+        response = client.post("/cronograma", json={"umbral": umbral})
+
+        assert response.status_code == 200
+        data = response.json()
+        nodos = data["nodos"]
+        aristas = data["aristas"]
+        turnos_por_materia = {nodo["id"]: nodo["turno"] for nodo in nodos}
+        turnos_esperados = {}
+
+        for materia, turno in turnos_por_materia.items():
+            turnos_esperados.setdefault(str(turno), set()).add(materia)
+
+        turnos_actuales = {
+            str(turno): set(materias)
+            for turno, materias in data["turnos"].items()
+        }
+
+        assert data["cantidad_nodos"] == len(nodos)
+        assert data["cantidad_aristas"] == len(aristas)
+        assert data["cantidad_turnos"] == len(turnos_esperados)
+        assert turnos_actuales == turnos_esperados
+        assert all(
+            turnos_por_materia[arista["source"]]
+            != turnos_por_materia[arista["target"]]
+            for arista in aristas
+        )
 
     def test_cronograma_empty_graph_one_turn(self):
         """
