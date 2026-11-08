@@ -248,7 +248,7 @@ curl -X POST http://localhost:8000/cronograma \
 React + TypeScript. Consume la API del backend.
 
 Las llamadas HTTP se centralizan en `frontend/src/api.ts`, con tipos compartidos en `frontend/src/types.ts` y manejo reutilizable de estados de carga y error en `frontend/src/useApiRequest.ts`.
-El grafo de conflictos se visualiza con Cytoscape.js: cada materia se colorea por turno y el grosor de las aristas representa el peso del conflicto. La visualización valida que los extremos de cada arista tengan turnos distintos.
+El grafo de conflictos se visualiza con Cytoscape.js: cada materia se colorea por turno y el grosor de las aristas representa el peso del conflicto. La visualización valida que los extremos de cada arista tengan turnos distintos, muestra el peso exacto al pasar el cursor o seleccionar una arista y permite reajustar el encuadre. El componente acepta un umbral configurable y actualiza los elementos del grafo sin reconstruir el layout.
 
 El selector de umbral (`frontend/src/UmbralSelector.tsx`) permite variar $\tau$ interactivamente con debounce (350 ms) y botones de acceso rápido (presets: 5, 15, 30, 50), actualizando el grafo, el coloreo y la cantidad de turnos sin congelar la interfaz.
  

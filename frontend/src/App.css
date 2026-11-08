@@ -280,33 +280,26 @@ body {
     rgba(8, 12, 21, 0.72);
 }
 
+.graph-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.graph-fit-button {
+  flex: 0 0 auto;
+}
+
 .graph-legend {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem 1rem;
   color: var(--text-secondary);
   font-size: 0.82rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--border-subtle);
-}
-
-.legend-title-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-.legend-items-grid {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.85rem;
-  max-height: 130px;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-  width: 100%;
 }
 
 .graph-legend strong {
@@ -918,6 +911,10 @@ body {
     height: 55vh;
   }
 
+  .graph-toolbar {
+    align-items: flex-start;
+    flex-direction: column-reverse;
+  }
   .legend-edge {
     padding-left: 0;
     border-left: 0;
