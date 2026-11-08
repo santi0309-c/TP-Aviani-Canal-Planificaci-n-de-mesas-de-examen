@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { API_BASE_URL, getHealth } from './api'
 import type { HealthResponse } from './types'
 import { useApiRequest } from './useApiRequest'
 import './App.css'
 
 export function App() {
-  const { data, loading, error, execute } = useApiRequest<HealthResponse>(true)
+  const { data, loading, error, status, execute } = useApiRequest<HealthResponse>(getHealth)
   const [latency, setLatency] = useState<number | null>(null)
   const [lastChecked, setLastChecked] = useState<Date | null>(null)
 
@@ -14,23 +14,15 @@ export function App() {
   const checkHealth = useCallback(async () => {
     const startTime = performance.now()
 
-    await execute(getHealth)
-    setLatency(Math.round(performance.now() - startTime))
-    setLastChecked(new Date())
-  }, [execute])
-
-  useEffect(() => {
-    let active = true
-    void Promise.resolve().then(() => {
-      if (active) {
-        return checkHealth()
-      }
-    })
-
-    return () => {
-      active = false
+    try {
+      await execute(getHealth)
+    } catch {
+      // The hook exposes request failures in the connection status card.
+    } finally {
+      setLatency(Math.round(performance.now() - startTime))
+      setLastChecked(new Date())
     }
-  }, [checkHealth])
+  }, [execute])
 
   return (
     <div className="app-container">
@@ -95,6 +87,11 @@ export function App() {
                 <div className="state-details">
                   <h3>Error de conexión</h3>
                   <p>{error}</p>
+                  {status !== null && (
+                    <small>
+                      {status === 0 ? 'Sin conexión con el servidor' : `Código HTTP ${status}`}
+                    </small>
+                  )}
                   <small>
                     Asegurate de que el backend esté ejecutándose en <code>{API_BASE_URL}</code> y que CORS esté activo.
                   </small>
