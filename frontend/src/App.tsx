@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react'
-import { API_BASE_URL, getHealth } from './api'
+import { API_BASE_URL, getHealth, postCronograma } from './api'
+import { CronogramaGrid } from './CronogramaGrid'
 import { GraphVisualization } from './GraphVisualization'
-import type { HealthResponse } from './types'
+import type { CronogramaResponse, HealthResponse } from './types'
 import { useApiRequest } from './useApiRequest'
 import './App.css'
 
@@ -9,6 +10,25 @@ export function App() {
   const { data, loading, error, status, execute } = useApiRequest<HealthResponse>(getHealth)
   const [latency, setLatency] = useState<number | null>(null)
   const [lastChecked, setLastChecked] = useState<Date | null>(null)
+
+  const [umbral, setUmbral] = useState<number>(15)
+
+  const loadCronograma = useCallback(
+    (signal: AbortSignal) => postCronograma({ umbral }, signal),
+    [umbral],
+  )
+
+  const {
+    data: cronograma,
+    loading: cronogramaLoading,
+    error: cronogramaError,
+    status: cronogramaStatus,
+    execute: executeCronograma,
+  } = useApiRequest<CronogramaResponse>(loadCronograma)
+
+  const handleCronogramaRetry = useCallback(() => {
+    void executeCronograma(loadCronograma).catch(() => {})
+  }, [executeCronograma, loadCronograma])
 
   const endpoint = `${API_BASE_URL}/health`
 
@@ -39,7 +59,7 @@ export function App() {
         </div>
         <h1 className="main-title">Planificación de Mesas de Examen</h1>
         <p className="main-subtitle">
-          Grafo de conflictos entre materias y estado de conexión con la API.
+          Grafo de conflictos entre materias, cronograma por turnos y exploración interactiva de umbrales.
         </p>
       </header>
 
@@ -169,7 +189,25 @@ export function App() {
           </div>
         </div>
 
-        <GraphVisualization />
+        {/* Visualización interactiva del grafo de conflictos con selector de umbral */}
+        <GraphVisualization
+          umbral={umbral}
+          onUmbralChange={setUmbral}
+          cronograma={cronograma}
+          loading={cronogramaLoading}
+          error={cronogramaError}
+          status={cronogramaStatus}
+          onRetry={handleCronogramaRetry}
+        />
+
+        {/* Grilla / calendario con la distribución de materias por turno */}
+        <CronogramaGrid
+          cronograma={cronograma}
+          isUpdating={cronogramaLoading && Boolean(cronograma)}
+          loading={cronogramaLoading && !cronograma}
+          error={cronogramaError}
+          onRetry={handleCronogramaRetry}
+        />
 
         {/* Tech Stack Cards */}
         <div className="stack-grid">
