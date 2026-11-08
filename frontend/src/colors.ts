@@ -37,3 +37,28 @@ export function turnoColor(turno: number): string {
   return `#${channels.join('')}`
 }
 
+/**
+ * Determina el color de texto con contraste óptimo (WCAG 2.1 AA) para un color de fondo.
+ *
+ * @param hexColor Color hexadecimal (ej. '#8b5cf6' o '#f0f3f8').
+ * @returns '#0c0e14' para fondos claros o '#ffffff' para fondos oscuros.
+ */
+export function getTextColorForBackground(hexColor: string): '#ffffff' | '#0c0e14' {
+  const clean = hexColor.replace('#', '')
+  if (clean.length < 6) {
+    return '#ffffff'
+  }
+
+  const r = parseInt(clean.substring(0, 2), 16) / 255
+  const g = parseInt(clean.substring(2, 4), 16) / 255
+  const b = parseInt(clean.substring(4, 6), 16) / 255
+
+  // Luminancia relativa según especificación W3C WCAG
+  const sR = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4)
+  const sG = g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4)
+  const sB = b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4)
+
+  const luminance = 0.2126 * sR + 0.7152 * sG + 0.0722 * sB
+
+  return luminance > 0.42 ? '#0c0e14' : '#ffffff'
+}

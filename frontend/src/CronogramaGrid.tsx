@@ -1,5 +1,5 @@
 import { useId, useMemo, useState } from 'react'
-import { turnoColor } from './colors'
+import { getTextColorForBackground, turnoColor } from './colors'
 import type { CronogramaResponse, NodoCronograma } from './types'
 
 export interface CronogramaGridProps {
@@ -115,6 +115,20 @@ export function CronogramaGrid({
       </div>
 
       <div className="card-body">
+        {/* Caso pedagógico especial: Umbral muy alto (colapso a 1 turno) */}
+        {cronograma && cronograma.cantidad_turnos === 1 && (
+          <div className="cronograma-banner-notice" role="status">
+            <span className="banner-icon">ℹ️</span>
+            <div>
+              <strong>Compensación extrema (τ = {cronograma.umbral}):</strong>
+              <p>
+                Al seleccionar un umbral de corte elevado, ningún par de materias supera la tolerancia estimada de conflicto.
+                Por lo tanto, no se generan aristas restrictivas y la totalidad de materias puede rendirse en un <strong>único turno</strong>.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Barra de herramientas: Búsqueda y filtrado rápido */}
         {cronograma && cronograma.nodos.length > 0 && (
           <div className="cronograma-toolbar">
@@ -126,7 +140,7 @@ export function CronogramaGrid({
                 id={searchInputId}
                 type="search"
                 className="cronograma-search-input"
-                placeholder="Buscar materia (ej. Análisis, M01)..."
+                placeholder="Buscar materia por nombre o ID (ej. Análisis, M01)..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -183,6 +197,21 @@ export function CronogramaGrid({
           </div>
         )}
 
+        {/* Estado vacío cuando la búsqueda no coincide con ninguna materia */}
+        {normalizedSearch && totalMateriasEncontradas === 0 && (
+          <div className="cronograma-empty-search" role="status">
+            <span className="empty-search-icon">🔍</span>
+            <p>No se encontraron materias que coincidan con <strong>"{searchTerm}"</strong>.</p>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => setSearchTerm('')}
+            >
+              Restablecer búsqueda
+            </button>
+          </div>
+        )}
+
         {/* Grilla de Columnas por Turno */}
         {cronograma && turnosAgrupados.length > 0 && (
           <div
@@ -225,7 +254,9 @@ export function CronogramaGrid({
                       <span
                         className="turno-count-badge"
                         style={{
-                          borderColor: group.color,
+                          borderColor: `${group.color}88`,
+                          color: '#ffffff',
+                          backgroundColor: `${group.color}25`,
                         }}
                       >
                         {group.cantidad} {group.cantidad === 1 ? 'materia' : 'materias'}
@@ -243,6 +274,8 @@ export function CronogramaGrid({
                           (materia.nombre.toLowerCase().includes(normalizedSearch) ||
                             materia.id.toLowerCase().includes(normalizedSearch))
 
+                        const textContrastColor = getTextColorForBackground(group.color)
+
                         return (
                           <li
                             key={materia.id}
@@ -253,9 +286,8 @@ export function CronogramaGrid({
                               <span
                                 className="materia-code-pill"
                                 style={{
-                                  backgroundColor: `${group.color}22`,
-                                  borderColor: `${group.color}66`,
-                                  color: '#ffffff',
+                                  backgroundColor: group.color,
+                                  color: textContrastColor,
                                 }}
                               >
                                 {materia.id}
@@ -283,4 +315,3 @@ export function CronogramaGrid({
     </section>
   )
 }
-
