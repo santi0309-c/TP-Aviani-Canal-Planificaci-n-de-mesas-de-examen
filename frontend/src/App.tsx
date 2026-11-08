@@ -206,7 +206,6 @@ export function App() {
           cronograma={cronograma}
           isUpdating={cronogramaLoading && Boolean(cronograma)}
         />
-
         {/* Grilla / calendario con la distribución de materias por turno */}
         <CronogramaGrid
           cronograma={cronograma}
