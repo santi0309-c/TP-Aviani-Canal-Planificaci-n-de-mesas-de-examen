@@ -81,12 +81,12 @@ class TestEndpointCronogramaSuccess:
 
 
 class TestEndpointCronogramaMonotonicityAndEdgeCases:
-    """Pruebas de monotonía y límites extremos del grafo."""
+    """Pruebas de monotonía en aristas, validez del coloreo y casos extremos."""
 
     def test_cronograma_monotonicity(self):
         """
-        Propiedad de monotonía: a mayor umbral τ, menor o igual cantidad de aristas
-        y menor o igual cantidad de turnos requeridos.
+        Al subir el umbral no se agregan aristas y cada respuesta sigue siendo
+        un coloreo válido. La cantidad de turnos greedy no tiene que ser monótona.
         """
         r_10 = client.post("/cronograma", json={"umbral": 10.0})
         r_25 = client.post("/cronograma", json={"umbral": 25.0})
@@ -103,8 +103,10 @@ class TestEndpointCronogramaMonotonicityAndEdgeCases:
         # Monotonía en aristas
         assert d_10["cantidad_aristas"] >= d_25["cantidad_aristas"] >= d_50["cantidad_aristas"]
 
-        # Monotonía en turnos necesarios
-        assert d_10["cantidad_turnos"] >= d_25["cantidad_turnos"] >= d_50["cantidad_turnos"]
+        # Cada cronograma debe respetar las restricciones de su propio grafo.
+        assert d_10["es_valido"] is True
+        assert d_25["es_valido"] is True
+        assert d_50["es_valido"] is True
 
     def test_cronograma_empty_graph_one_turn(self):
         """

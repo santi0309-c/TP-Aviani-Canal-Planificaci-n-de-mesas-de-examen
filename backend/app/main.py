@@ -194,11 +194,6 @@ def post_cronograma(request: CronogramaRequest) -> CronogramaResponse:
             status_code=503,
             detail="No se pudo generar el cronograma: no se encontró el modelo o los datos requeridos.",
         ) from exc
-    except Exception as exc:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error inesperado al cargar datos de inferencia: {str(exc)}",
-        ) from exc
 
     # 2. Construir el grafo de conflictos (asegurando materias aisladas)
     G = build_conflict_graph(
