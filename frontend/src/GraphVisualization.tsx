@@ -2,6 +2,7 @@ import type { Core, EdgeSingular, ElementDefinition } from 'cytoscape'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { postCronograma } from './api'
 import type { CronogramaResponse } from './types'
+import { UmbralSelector } from './UmbralSelector'
 import { useApiRequest } from './useApiRequest'
 
 interface EdgeDetails {
@@ -10,6 +11,12 @@ interface EdgeDetails {
   sourceId: string
   targetId: string
   weight: number
+}
+
+export interface GraphVisualizationProps {
+  initialUmbral?: number
+  umbral?: number
+  onUmbralChange?: (umbral: number) => void
 }
 
 function turnoColor(turno: number): string {
@@ -85,6 +92,7 @@ function buildElements(cronograma: CronogramaResponse): ElementDefinition[] {
       id: nodo.id,
       label: nodo.nombre,
       color: turnoColor(nodo.turno),
+      turno: nodo.turno,
     },
   }))
 
@@ -125,6 +133,7 @@ function updateGraph(instance: Core, cronograma: CronogramaResponse): void {
       node.data({
         label: updatedNode.nombre,
         color: turnoColor(updatedNode.turno),
+        turno: updatedNode.turno,
       })
       nodesById.delete(node.id())
     })
@@ -134,6 +143,7 @@ function updateGraph(instance: Core, cronograma: CronogramaResponse): void {
         id: node.id,
         label: node.nombre,
         color: turnoColor(node.turno),
+        turno: node.turno,
       },
       position: {
         x: centerX + Math.cos(index) * 40,
@@ -146,11 +156,29 @@ function updateGraph(instance: Core, cronograma: CronogramaResponse): void {
   instance.resize()
 }
 
-export function GraphVisualization({ umbral = 15 }: { umbral?: number }) {
-  const loadCronograma = useCallback(
-    (signal: AbortSignal) => postCronograma({ umbral }, signal),
-    [umbral],
+export function GraphVisualization({
+  initialUmbral = 15,
+  umbral: externalUmbral,
+  onUmbralChange,
+}: GraphVisualizationProps = {}) {
+  const [internalUmbral, setInternalUmbral] = useState<number>(initialUmbral)
+  const activeUmbral = externalUmbral !== undefined ? externalUmbral : internalUmbral
+
+  const handleUmbralChange = useCallback(
+    (newUmbral: number) => {
+      if (externalUmbral === undefined) {
+        setInternalUmbral(newUmbral)
+      }
+      onUmbralChange?.(newUmbral)
+    },
+    [externalUmbral, onUmbralChange],
   )
+
+  const loadCronograma = useCallback(
+    (signal: AbortSignal) => postCronograma({ umbral: activeUmbral }, signal),
+    [activeUmbral],
+  )
+
   const { data, loading, error, status, execute } =
     useApiRequest<CronogramaResponse>(loadCronograma)
   const graphElement = useRef<HTMLDivElement>(null)
@@ -169,7 +197,7 @@ export function GraphVisualization({ umbral = 15 }: { umbral?: number }) {
     }
 
     let active = true
-    if (graphInstance.current) {
+    if (graphInstance.current && !graphInstance.current.destroyed()) {
       updateGraph(graphInstance.current, data)
     } else {
       void import('cytoscape')
@@ -266,6 +294,7 @@ export function GraphVisualization({ umbral = 15 }: { umbral?: number }) {
         : [],
     [data],
   )
+
   const displayedEdge = selectedEdge && data?.aristas.some(
     (edge) =>
       edge.source === selectedEdge.sourceId &&
@@ -274,6 +303,9 @@ export function GraphVisualization({ umbral = 15 }: { umbral?: number }) {
   )
     ? selectedEdge
     : null
+
+  const isInitialLoading = loading && !data
+  const isUpdatingGraph = loading && Boolean(data)
 
   return (
     <section className="card glass-card graph-card" aria-labelledby="graph-title">
@@ -286,16 +318,25 @@ export function GraphVisualization({ umbral = 15 }: { umbral?: number }) {
         </div>
         {data && (
           <span className="status-pill pill-success">
-            {data.cantidad_nodos} materias · {data.cantidad_aristas} conflictos · τ = {data.umbral}
+            {data.cantidad_nodos} materias · {data.cantidad_aristas} conflictos · τ = {data.umbral} ·{' '}
+            <strong>{data.cantidad_turnos} turnos</strong>
           </span>
         )}
       </div>
 
       <div className="card-body">
-        {loading && !data && (
+        {/* Selector de Umbral Interactivo con Slider y Presets */}
+        <UmbralSelector
+          value={activeUmbral}
+          onChange={handleUmbralChange}
+          disabled={isInitialLoading}
+          isUpdating={isUpdatingGraph}
+        />
+
+        {isInitialLoading && (
           <div className="state-container state-loading" role="status">
             <div className="spinner" />
-            <p>Generando el grafo de conflictos...</p>
+            <p>Generando el grafo de conflictos inicial...</p>
           </div>
         )}
 
@@ -343,18 +384,27 @@ export function GraphVisualization({ umbral = 15 }: { umbral?: number }) {
           </div>
         )}
 
-        <div
-          className="graph-canvas"
-          ref={graphElement}
-          style={{
-            display:
-              data && !invalidColoring && !graphError && data.nodos.length > 0
-                ? undefined
-                : 'none',
-          }}
-          role="img"
-          aria-label={`Grafo con ${data?.cantidad_nodos ?? 0} materias y ${data?.cantidad_aristas ?? 0} conflictos`}
-        />
+        <div className="graph-viewport-wrapper">
+          <div
+            className="graph-canvas"
+            ref={graphElement}
+            style={{
+              display:
+                data && !invalidColoring && !graphError && data.nodos.length > 0
+                  ? undefined
+                  : 'none',
+            }}
+            role="img"
+            aria-label={`Grafo con ${data?.cantidad_nodos ?? 0} materias y ${data?.cantidad_aristas ?? 0} conflictos para umbral ${activeUmbral}`}
+          />
+
+          {isUpdatingGraph && (
+            <div className="graph-updating-overlay" aria-live="polite">
+              <span className="btn-spinner" />
+              <span>Recalculando para τ = {activeUmbral}...</span>
+            </div>
+          )}
+        </div>
 
         {!error && !invalidColoring && !graphError && data && data.nodos.length > 0 && (
           <>
@@ -373,7 +423,7 @@ export function GraphVisualization({ umbral = 15 }: { umbral?: number }) {
               </button>
             </div>
             <div className="graph-legend" aria-label="Leyenda de turnos">
-              <strong>Turnos</strong>
+              <strong>Turnos ({turnos.length})</strong>
               {turnos.map((turno) => (
                 <span className="legend-item" key={turno}>
                   <span
