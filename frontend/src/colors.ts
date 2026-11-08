@@ -1,13 +1,7 @@
-/**
- * Genera un color hexadecimal para cada turno de examen.
- *
- * Usa el ángulo áureo (137.508°) en el espacio HSL para que colores
- * consecutivos sean fácilmente distinguibles. El mismo turno siempre
- * da el mismo color, así el grafo y la grilla de turnos están sincronizados.
- *
- * @param turno Índice del turno (0, 1, 2, ...).
- * @returns Color en hexadecimal, ej. '#8b5cf6'.
- */
+// Calculamos un color para cada turno usando el ángulo áureo (137.508°)
+// en el espacio HSL. De esta forma turnos consecutivos tienen colores
+// bien distintos y el turno 0 siempre tiene el mismo color tanto en el
+// grafo como en la grilla de materias.
 export function turnoColor(turno: number): string {
   const hue = (turno * 137.508) % 360
   const chroma = (1 - Math.abs(2 * 0.48 - 1)) * 0.72
@@ -35,12 +29,7 @@ export function turnoColor(turno: number): string {
   return `#${channels.join('')}`
 }
 
-/**
- * Calcula la luminancia relativa de un color según WCAG 2.1.
- *
- * @param hexColor Color en hex, ej. '#8b5cf6'.
- * @returns Luminancia relativa en [0, 1].
- */
+// Luminancia relativa según la fórmula de accesibilidad WCAG 2.1
 export function getRelativeLuminance(hexColor: string): number {
   const clean = hexColor.replace('#', '')
   if (clean.length < 6) {
@@ -59,25 +48,16 @@ export function getRelativeLuminance(hexColor: string): number {
   return 0.2126 * sR + 0.7152 * sG + 0.0722 * sB
 }
 
-/**
- * Relación de contraste entre dos luminancias según WCAG 2.1.
- * Fórmula: (L_clara + 0.05) / (L_oscura + 0.05).
- *
- * @returns Valor entre 1 y 21 (ej. 4.5 = contraste 4.5:1).
- */
+// Relación de contraste entre dos luminancias (fórmula W3C)
 export function getContrastRatio(l1: number, l2: number): number {
   const lighter = Math.max(l1, l2)
   const darker = Math.min(l1, l2)
   return (lighter + 0.05) / (darker + 0.05)
 }
 
-/**
- * Elige texto blanco o negro según cuál tenga mejor contraste con el fondo.
- * Calcula la relación real de contraste WCAG 2.1 y elige la que cumpla >= 4.5:1.
- *
- * @param hexColor Color de fondo en hex, ej. '#8b5cf6'.
- * @returns '#ffffff' para fondos oscuros, '#000000' para fondos claros.
- */
+// Elegimos si conviene texto blanco o negro sobre el fondo del turno.
+// Calculamos el contraste real contra ambos y elegimos el que cumple
+// WCAG AA (mínimo 4.5:1) para que se lea bien.
 export function getTextColorForBackground(hexColor: string): '#ffffff' | '#000000' {
   const bgLuminance = getRelativeLuminance(hexColor)
   const whiteLuminance = 1.0 // Luminancia relativa de #ffffff

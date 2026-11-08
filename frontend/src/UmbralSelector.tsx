@@ -20,15 +20,15 @@ const PRESETS = [
 
 function getTradeOffDescription(umbral: number): string {
   if (umbral <= 8) {
-    return 'Alta restricción: Se detectan conflictos leves. Requiere más turnos de examen para evitar cualquier superposición.'
+    return 'Alta restricción: detecta hasta conflictos chicos. Usa más turnos pero casi no hay solapamientos.'
   }
   if (umbral <= 20) {
-    return 'Equilibrio institucional óptimo: Balance ideal entre número de turnos de examen y prevención de conflictos.'
+    return 'Punto de equilibrio: buen balance entre cantidad de turnos y conflictos evitados.'
   }
   if (umbral <= 40) {
-    return 'Tolerancia moderada: Se admiten cruces menores para compactar el calendario en menos turnos.'
+    return 'Tolerancia moderada: permite cruces menores para meter los exámenes en menos turnos.'
   }
-  return 'Baja restricción: Solo se restringen conflictos masivos. Número mínimo de turnos de examen.'
+  return 'Baja restricción: solo separa materias con muchos estudiantes en común. Menor cantidad de turnos.'
 }
 
 export function UmbralSelector({
@@ -45,7 +45,7 @@ export function UmbralSelector({
 
   const debouncedOnChange = useDebouncedCallback(onChange, 350)
 
-  // Sincronizar estado durante el render si cambia la prop externa (patrón oficial de React 19)
+  // Si el umbral cambia desde afuera (ej: presets), actualizamos el valor local
   if (value !== prevValue) {
     setPrevValue(value)
     setLocalValue(value)

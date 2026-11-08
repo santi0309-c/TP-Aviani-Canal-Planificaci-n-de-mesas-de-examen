@@ -1,14 +1,11 @@
 """
-evaluate.py — Evaluación final del modelo elegido sobre el conjunto de test (Ticket T10).
+evaluate.py — Evaluación final del modelo elegido sobre el conjunto de test.
 
-Evalúa el modelo seleccionado (Regresión Lineal) una única vez sobre el conjunto
-de Test (117 pares no vistos en Train ni Validación).
-
-Genera:
-1. Métricas de regresión (MAE, RMSE, R²).
-2. Métricas de clasificación derivada con corte en umbral τ = 15 (Acc, Prec, Rec, F1, Matriz de Confusión).
-3. Archivo JSON exportable: backend/models/metricas.json (consumido por la API en T19).
-4. Gráficos en informe/capturas/evaluacion/ (predicho vs. real, matriz de confusión, residuos).
+Evalúa el modelo (Regresión Lineal) sobre los 117 pares de test:
+1. Métricas de regresión: MAE, RMSE, R².
+2. Métricas de clasificación derivada con corte en umbral τ = 15: Accuracy, Precisión, Recall, F1.
+3. Guarda el JSON en backend/models/metricas.json para que lo use el backend.
+4. Genera gráficos en informe/capturas/evaluacion/.
 
 Uso:
     python -m app.ml.evaluate --data data/pares_materias.csv --model models/modelo.joblib
@@ -22,7 +19,7 @@ from typing import Any, Dict
 
 import joblib
 import matplotlib
-matplotlib.use("Agg")  # Backend no interactivo para entornos headless / CI
+matplotlib.use("Agg")  # Para que no abra ventanas de gráficos
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

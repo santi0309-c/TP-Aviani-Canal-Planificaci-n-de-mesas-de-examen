@@ -1,15 +1,10 @@
 """
-error_analysis.py — Análisis y diagnóstico de errores del modelo sobre test (Ticket T11).
+error_analysis.py — Análisis de errores del modelo sobre el conjunto de test.
 
-Diagnostica dónde y por qué falla el modelo de regresión:
-1. Identifica los pares de materias con mayor error absoluto (|y - ŷ|).
-2. Analiza los casos frontera de clasificación (Falsos Negativos y Falsos Positivos con umbral τ).
-3. Detecta patrones sistemáticos (sesgo general, desagregación por año, carrera y volumen).
-4. Exporta un resumen diagnóstico consumible y genera reporte para el informe final.
-
-Uso:
-    python -m app.ml.error_analysis
-    UMBRAL_CONFLICTO=13 python -m app.ml.error_analysis
+Revisa en qué pares de materias se equivoca más el modelo:
+- Pares con mayor error absoluto (|y - ŷ|).
+- Falsos positivos y falsos negativos según el umbral τ.
+- Diferencias por año de cursada y por carrera.
 """
 
 import argparse

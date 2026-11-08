@@ -1,10 +1,5 @@
 """
-schemas.py — Modelos Pydantic de entrada y salida para la API (Tickets T17 y T18).
-
-Define los contratos de datos fuertemente tipados para:
-- /materias:    Catálogo de materias institucionales (nodos).
-- /conflictos:  Estimación de pares de materias en conflicto según umbral (aristas).
-- /cronograma:  Construcción del grafo + coloreo greedy → cronograma de turnos de examen.
+schemas.py — Modelos Pydantic para validar los datos de la API.
 """
 
 from typing import Dict, List, Optional

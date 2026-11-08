@@ -1,9 +1,9 @@
 """
-main.py — Servidor y API REST con FastAPI (Tickets T02, T17 y T18).
+main.py — API del backend con FastAPI.
 
-Para ejecutar localmente:
+Para correrlo local:
     uvicorn app.main:app --reload --port 8000
-Documentación Swagger interactiva:
+Documentación interactiva de los endpoints:
     http://localhost:8000/docs
 """
 
@@ -247,20 +247,20 @@ def post_cronograma(request: CronogramaRequest) -> CronogramaResponse:
             detail="No se pudo generar el cronograma: no se encontró el modelo o los datos requeridos.",
         ) from exc
 
-    # 2. Construir el grafo de conflictos (asegurando materias aisladas)
+    # 2. Armamos el grafo de conflictos (incluyendo materias sin conflictos)
     G = build_conflict_graph(
         predictions=predicciones,
         umbral=umbral,
         materias=materias_catalog,
     )
 
-    # 3. Aplicar coloreo greedy con heurística Welsh-Powell
+    # 3. Asignamos turnos con coloreo greedy (Welsh-Powell)
     coloring = greedy_coloring(G)
 
-    # 4. Validar factibilidad formal del coloreo
+    # 4. Chequeamos que ninguna materia conectada comparta turno
     es_valido = bool(validate_coloring(G, coloring))
 
-    # 5. Métricas y agrupaciones
+    # 5. Calculamos cuántos turnos se usaron y agrupamos materias por turno
     num_turnos = get_num_turnos(coloring)
     turnos_agrupados = group_by_turno(coloring)
 

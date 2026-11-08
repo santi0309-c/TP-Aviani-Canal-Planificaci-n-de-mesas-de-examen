@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-/**
- * Hook para demorar la propagación de un valor reactivo hasta que transcurra
- * el intervalo especificado sin nuevas modificaciones (Debounce).
- *
- * @param value Valor reactivo a demorar.
- * @param delayMs Tiempo de espera en milisegundos (por defecto 350ms).
- * @returns El valor estabilizado tras el debounce.
- */
+// Hook simple de debounce para que el slider o el buscador no disparen
+// pedidos a la API en cada micro-cambio.
 export function useDebounce<T>(value: T, delayMs = 350): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value)
 
@@ -30,14 +24,7 @@ export interface DebouncedCallback<Args extends unknown[]> {
   flush: (...args: Args) => void
 }
 
-/**
- * Hook para ejecutar un callback con debounce y control explícito
- * de cancelación y ejecución inmediata (flush).
- *
- * @param callback Función a ejecutar.
- * @param delayMs Tiempo de espera en milisegundos (por defecto 350ms).
- * @returns Objeto con métodos run (demorado), cancel (cancelar timer) y flush (inmediato).
- */
+// Variante que envuelve una función con debounce y permite cancelar o ejecutar ya
 export function useDebouncedCallback<Args extends unknown[]>(
   callback: (...args: Args) => void,
   delayMs = 350,

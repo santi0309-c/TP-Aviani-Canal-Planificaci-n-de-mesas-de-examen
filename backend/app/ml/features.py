@@ -1,13 +1,8 @@
 """
-features.py — Preparación de datos, selección de features y partición (Ticket T08).
+features.py — Preparación de features y partición de datos.
 
-Módulo responsable de:
-- Seleccionar las features predictoras y el target de regresión.
-- Construir el ColumnTransformer de preprocesamiento (escalado + codificación).
-- Partir el dataset en Train / Validación / Test sin fuga de información.
-
-Uso interno:
-    from app.ml.features import load_dataset, build_features, split_data, build_preprocessor
+Maneja la selección de columnas, el escalado con StandardScaler
+y la separación en conjuntos de train, validación y test.
 """
 
 import json

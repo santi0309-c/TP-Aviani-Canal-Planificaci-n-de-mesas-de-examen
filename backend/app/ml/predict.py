@@ -1,11 +1,8 @@
 """
-predict.py — Carga del modelo entrenado y predicción de conflictos (Ticket T12).
+predict.py — Carga del modelo entrenado y predicción de conflictos.
 
-Módulo responsable de:
-- Cargar el pipeline entrenado (ColumnTransformer + Regresión Lineal) con patrón Singleton / Caché.
-- Predecir la cantidad continua de estudiantes afectados para pares de materias.
-- Exponer predecir_pares() para consumo directo del grafo (T13) y endpoints de la API (T17, T18).
-- Servir como herramienta CLI para generar y exportar predicciones.
+Carga el modelo guardado (.joblib) y predice la cantidad de estudiantes
+afectados para cada par de materias.
 """
 
 import argparse
@@ -15,7 +12,7 @@ from pathlib import Path
 import sys
 from typing import Any, Dict, List, Optional, Union
 
-# Rutas predeterminadas robustas relativas a la ubicación del script
+# Rutas por defecto
 BASE_DIR = Path(__file__).resolve().parent  # backend/app/ml
 BACKEND_DIR = BASE_DIR.parents[1]           # backend
 DEFAULT_DATA_PATH = BACKEND_DIR / "data" / "pares_materias.csv"
