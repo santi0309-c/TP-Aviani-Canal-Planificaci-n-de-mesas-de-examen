@@ -253,10 +253,13 @@ El grafo de conflictos se visualiza con Cytoscape.js: cada materia se colorea po
 El selector de umbral (`frontend/src/UmbralSelector.tsx`) permite variar $\tau$ interactivamente con debounce (350 ms) y botones de acceso rápido (presets: 5, 15, 30, 50), actualizando el grafo, el coloreo y la cantidad de turnos sin congelar la interfaz.
 
 La vista de cronograma (`frontend/src/CronogramaGrid.tsx`) organiza las materias en columnas por turno, sincronizada exactamente con los colores determinísticos del grafo (`frontend/src/colors.ts`). Muestra la cantidad de materias por turno, métricas globales de distribución y un buscador rápido para localizar materias específicas.
+
+El panel de métricas (`frontend/src/MetricsPanel.tsx`) resume en tiempo real los KPIs del cronograma (cantidad de turnos, aristas activas, estudiantes protegidos, densidad del grafo y riesgo residual tolerado) junto con las métricas de evaluación del modelo de Machine Learning (MAE, RMSE, $R^2$, Accuracy, matriz de confusión y metadatos de entrenamiento).
  
 - **Grafo de conflictos:** materias como nodos coloreados según el turno asignado; grosor de arista según el peso.
 - **Vista de cronograma:** grilla/calendario con las materias de cada turno.
 - **Selector de umbral:** slider que recalcula grafo, coloreo y cantidad de turnos.
+- **Panel de métricas:** KPIs dinámicos del cronograma y métricas de evaluación del modelo de ML.
 _Capturas de pantalla en `informe/capturas/`._
  
 ## 11. Tests

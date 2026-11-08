@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { API_BASE_URL, getHealth, postCronograma } from './api'
 import { CronogramaGrid } from './CronogramaGrid'
 import { GraphVisualization } from './GraphVisualization'
+import { MetricsPanel } from './MetricsPanel'
 import type { CronogramaResponse, HealthResponse } from './types'
 import { useApiRequest } from './useApiRequest'
 import './App.css'
@@ -198,6 +199,12 @@ export function App() {
           error={cronogramaError}
           status={cronogramaStatus}
           onRetry={handleCronogramaRetry}
+        />
+
+        {/* Panel de métricas y datos clave (reactivo al umbral y evaluación de ML) */}
+        <MetricsPanel
+          cronograma={cronograma}
+          isUpdating={cronogramaLoading && Boolean(cronograma)}
         />
 
         {/* Grilla / calendario con la distribución de materias por turno */}
