@@ -242,8 +242,10 @@ curl -X POST http://localhost:8000/cronograma \
 ```
  
 ## 10. Frontend
- 
+
 React + TypeScript. Consume la API del backend.
+
+Las llamadas HTTP se centralizan en `frontend/src/api.ts`, con tipos compartidos en `frontend/src/types.ts` y manejo reutilizable de estados de carga y error en `frontend/src/useApiRequest.ts`.
  
 - **Grafo de conflictos:** materias como nodos coloreados según el turno asignado; grosor de arista según el peso.
 - **Vista de cronograma:** grilla/calendario con las materias de cada turno.
