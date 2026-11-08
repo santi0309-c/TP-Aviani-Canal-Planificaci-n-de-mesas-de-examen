@@ -224,6 +224,8 @@ El algoritmo está implementado a mano en `backend/app/graph/coloring.py`; `netw
 | `POST` | `/cronograma` | Construye el grafo y devuelve el coloreo |
 | `GET` | `/metricas` | Métricas del modelo sobre test |
  
+`GET /metricas` devuelve los metadatos del modelo, métricas de regresión y clasificación, y la matriz de confusión desde `backend/models/metricas.json`. Responde `503` si el archivo todavía no está disponible y `500` si su contenido es inválido.
+
 Ejemplo:
  
 ```bash
