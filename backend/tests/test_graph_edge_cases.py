@@ -17,6 +17,19 @@ def _predictions_for_edges(nodes, weight=10.0):
     ]
 
 
+def test_fully_empty_graph_is_handled():
+    """Un grafo sin materias ni predicciones debe colorearse sin errores."""
+    graph = build_conflict_graph([], umbral=15.0, materias=[])
+
+    coloring = greedy_coloring(graph)
+
+    assert graph.number_of_nodes() == 0
+    assert graph.number_of_edges() == 0
+    assert coloring == {}
+    assert get_num_turnos(coloring) == 0
+    assert validate_coloring(graph, coloring)
+
+
 def test_edgeless_graph_assigns_every_materia_to_one_turn():
     """Un grafo sin aristas debe conservar sus nodos y usar un único turno."""
     materias = ["M01", "M02", "M03", "M04"]
@@ -29,6 +42,30 @@ def test_edgeless_graph_assigns_every_materia_to_one_turn():
     assert set(coloring) == set(materias)
     assert set(coloring.values()) == {0}
     assert get_num_turnos(coloring) == 1
+    assert validate_coloring(graph, coloring)
+
+
+def test_catalog_as_dicts_preserves_materias_and_metadata():
+    """El catálogo con objetos como los de materias.json debe crear nodos válidos."""
+    materias = [
+        {"id": "M01", "nombre": "Álgebra I", "anio": 1, "carreras": ["C1"]},
+        {"id": "M02", "nombre": "Física I", "anio": 1, "carreras": ["C1"]},
+        {"id": "M03", "nombre": "Química I", "anio": 1, "carreras": ["C2"]},
+    ]
+    predictions = [
+        {"materia_1": "M01", "materia_2": "M02", "conflicto_predicho": 10.0}
+    ]
+
+    graph = build_conflict_graph(predictions, umbral=5.0, materias=materias)
+    coloring = greedy_coloring(graph)
+
+    assert set(graph.nodes) == {"M01", "M02", "M03"}
+    assert graph.nodes["M01"]["nombre"] == "Álgebra I"
+    assert graph.nodes["M01"]["anio"] == 1
+    assert graph.nodes["M01"]["carreras"] == ["C1"]
+    assert graph.has_edge("M01", "M02")
+    assert graph.degree["M03"] == 0
+    assert set(coloring) == set(graph.nodes)
     assert validate_coloring(graph, coloring)
 
 
