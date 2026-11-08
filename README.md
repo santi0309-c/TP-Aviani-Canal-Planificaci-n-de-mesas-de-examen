@@ -248,6 +248,8 @@ React + TypeScript. Consume la API del backend.
 Las llamadas HTTP se centralizan en `frontend/src/api.ts`, con tipos compartidos en `frontend/src/types.ts` y manejo reutilizable de estados de carga y error en `frontend/src/useApiRequest.ts`.
 
 El grafo de conflictos se visualiza con Cytoscape.js: cada materia se colorea por turno y el grosor de las aristas representa el peso del conflicto. La visualización valida que los extremos de cada arista tengan turnos distintos.
+
+El selector de umbral (`frontend/src/UmbralSelector.tsx`) permite variar $\tau$ interactivamente con debounce (350 ms) y botones de acceso rápido (presets: 5, 15, 30, 50), actualizando el grafo, el coloreo y la cantidad de turnos sin congelar la interfaz.
  
 - **Grafo de conflictos:** materias como nodos coloreados según el turno asignado; grosor de arista según el peso.
 - **Vista de cronograma:** grilla/calendario con las materias de cada turno.

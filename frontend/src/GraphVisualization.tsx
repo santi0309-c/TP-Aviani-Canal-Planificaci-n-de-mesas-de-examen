@@ -1,7 +1,8 @@
-import type { Core, ElementDefinition } from 'cytoscape'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import type { Core, ElementDefinition, LayoutOptions } from 'cytoscape'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { postCronograma } from './api'
 import type { CronogramaResponse } from './types'
+import { UmbralSelector } from './UmbralSelector'
 import { useApiRequest } from './useApiRequest'
 
 function turnoColor(turno: number): string {
@@ -63,6 +64,7 @@ function buildElements(cronograma: CronogramaResponse): ElementDefinition[] {
       id: nodo.id,
       label: nodo.nombre,
       color: turnoColor(nodo.turno),
+      turno: nodo.turno,
     },
   }))
   const edges: ElementDefinition[] = cronograma.aristas.map((arista, index) => ({
@@ -70,6 +72,7 @@ function buildElements(cronograma: CronogramaResponse): ElementDefinition[] {
       id: `edge-${index}`,
       source: arista.source,
       target: arista.target,
+      peso: Math.round(arista.peso * 10) / 10,
       lineWidth: 1 + (Math.sqrt(arista.peso) / Math.sqrt(maxWeight)) * 5,
     },
   }))
@@ -77,44 +80,92 @@ function buildElements(cronograma: CronogramaResponse): ElementDefinition[] {
   return [...edges, ...nodes]
 }
 
-export function GraphVisualization() {
+const LAYOUT_OPTIONS: LayoutOptions = {
+  name: 'cose',
+  animate: true,
+  animationDuration: 400,
+  fit: true,
+  padding: 35,
+  nodeRepulsion: () => 45000,
+  idealEdgeLength: () => 100,
+  gravity: 0.25,
+}
+
+export interface GraphVisualizationProps {
+  initialUmbral?: number
+  umbral?: number
+  onUmbralChange?: (umbral: number) => void
+}
+
+export function GraphVisualization({
+  initialUmbral = 15,
+  umbral: externalUmbral,
+  onUmbralChange,
+}: GraphVisualizationProps) {
+  // Manejo de estado controlado / no controlado para el umbral
+  const [internalUmbral, setInternalUmbral] = useState<number>(initialUmbral)
+  const activeUmbral = externalUmbral !== undefined ? externalUmbral : internalUmbral
+
+  const handleUmbralChange = useCallback(
+    (newUmbral: number) => {
+      if (externalUmbral === undefined) {
+        setInternalUmbral(newUmbral)
+      }
+      onUmbralChange?.(newUmbral)
+    },
+    [externalUmbral, onUmbralChange],
+  )
+
   const { data, loading, error, execute } = useApiRequest<CronogramaResponse>(true)
   const graphElement = useRef<HTMLDivElement>(null)
+  const cyInstanceRef = useRef<Core | null>(null)
   const [graphError, setGraphError] = useState<string | null>(null)
 
+  // Cargar cronograma cada vez que cambie el umbral estabilizado
   useEffect(() => {
     let active = true
     void Promise.resolve().then(() => {
       if (active) {
-        return execute(() => postCronograma())
+        return execute(() => postCronograma({ umbral: activeUmbral }))
       }
     })
 
     return () => {
       active = false
     }
-  }, [execute])
+  }, [activeUmbral, execute])
 
   const invalidColoring = useMemo(
     () => (data ? coloringError(data) : null),
     [data],
   )
 
+  // Inicialización o actualización reactiva de Cytoscape sin desmontar el canvas
   useEffect(() => {
     if (!data || invalidColoring || !graphElement.current || data.nodos.length === 0) {
       return
     }
 
     let active = true
-    let instance: Core | undefined
 
+    // Si ya existe una instancia de Cytoscape, actualizar elementos de forma fluida
+    if (cyInstanceRef.current && !cyInstanceRef.current.destroyed()) {
+      const cy = cyInstanceRef.current
+      cy.elements().remove()
+      cy.add(buildElements(data))
+      const layout = cy.layout(LAYOUT_OPTIONS)
+      layout.run()
+      return
+    }
+
+    // Inicialización por primera vez con carga diferida
     void import('cytoscape')
       .then(({ default: cytoscape }) => {
         if (!active || !graphElement.current) {
           return
         }
 
-        instance = cytoscape({
+        const cy = cytoscape({
           container: graphElement.current,
           elements: buildElements(data),
           style: [
@@ -123,20 +174,20 @@ export function GraphVisualization() {
               style: {
                 'background-color': 'data(color)',
                 'border-color': '#f8fafc',
-                'border-width': 1,
+                'border-width': 1.5,
                 color: '#f8fafc',
                 label: 'data(label)',
                 'font-size': 9,
                 'font-weight': 600,
                 'text-wrap': 'wrap',
-                'text-max-width': '110px',
+                'text-max-width': '100px',
                 'text-valign': 'center',
                 'text-halign': 'center',
-                width: 110,
-                height: 52,
-                padding: '10px',
-                'text-outline-color': '#101522',
-                'text-outline-width': 2,
+                width: 105,
+                height: 50,
+                padding: '8px',
+                'text-outline-color': '#0c0e14',
+                'text-outline-width': 2.5,
               },
             },
             {
@@ -144,36 +195,58 @@ export function GraphVisualization() {
               style: {
                 width: 'data(lineWidth)',
                 'line-color': '#94a3b8',
-                opacity: 0.48,
+                opacity: 0.45,
                 'curve-style': 'bezier',
               },
             },
+            {
+              selector: 'node:selected',
+              style: {
+                'border-color': '#38bdf8',
+                'border-width': 3,
+                'text-outline-color': '#0284c7',
+              },
+            },
+            {
+              selector: 'edge:selected',
+              style: {
+                'line-color': '#38bdf8',
+                opacity: 0.9,
+                width: 4,
+              },
+            },
           ],
-          layout: {
-            name: 'cose',
-            animate: true,
-            animationDuration: 500,
-            fit: true,
-            padding: 40,
-            nodeRepulsion: 30000,
-            idealEdgeLength: 110,
-          },
+          layout: LAYOUT_OPTIONS,
           minZoom: 0.2,
           maxZoom: 3,
         })
 
+        cyInstanceRef.current = cy
       })
       .catch(() => {
         if (active) {
-          setGraphError('No se pudo iniciar la visualización interactiva del grafo.')
+          setGraphError('No se pudo inicializar el motor de grafos Cytoscape.')
         }
       })
 
     return () => {
       active = false
-      instance?.destroy()
     }
   }, [data, invalidColoring])
+
+  // Cleanup final al desmontar el componente
+  useEffect(() => {
+    return () => {
+      cyInstanceRef.current?.destroy()
+      cyInstanceRef.current = null
+    }
+  }, [])
+
+  const handleFitView = useCallback(() => {
+    if (cyInstanceRef.current && !cyInstanceRef.current.destroyed()) {
+      cyInstanceRef.current.fit(undefined, 40)
+    }
+  }, [])
 
   const turnos = useMemo(
     () =>
@@ -183,27 +256,40 @@ export function GraphVisualization() {
     [data],
   )
 
+  const isInitialLoading = loading && !data
+  const isUpdatingGraph = loading && Boolean(data)
+
   return (
     <section className="card glass-card graph-card" aria-labelledby="graph-title">
       <div className="card-header">
         <div>
           <h2 className="status-title" id="graph-title">Grafo de conflictos</h2>
           <p className="graph-subtitle">
-            Las materias conectadas tienen turnos diferentes. Arrastrá para explorar y usá la rueda para acercar.
+            Cada nodo representa una materia y su color indica el turno de examen asignado.
+            Las materias adyacentes no comparten turno.
           </p>
         </div>
         {data && (
           <span className="status-pill pill-success">
-            {data.cantidad_nodos} materias · {data.cantidad_aristas} conflictos
+            {data.cantidad_nodos} materias · {data.cantidad_aristas} aristas ·{' '}
+            <strong>{data.cantidad_turnos} turnos</strong>
           </span>
         )}
       </div>
 
       <div className="card-body">
-        {loading && (
+        {/* Selector de Umbral Interactivo con Slider y Presets */}
+        <UmbralSelector
+          value={activeUmbral}
+          onChange={handleUmbralChange}
+          disabled={isInitialLoading}
+          isUpdating={isUpdatingGraph}
+        />
+
+        {isInitialLoading && (
           <div className="state-container state-loading" role="status">
             <div className="spinner" />
-            <p>Generando el grafo de conflictos...</p>
+            <p>Generando el grafo de conflictos inicial...</p>
           </div>
         )}
 
@@ -217,7 +303,7 @@ export function GraphVisualization() {
             <button
               className="btn btn-primary"
               type="button"
-              onClick={() => void execute(() => postCronograma())}
+              onClick={() => void execute(() => postCronograma({ umbral: activeUmbral }))}
             >
               Reintentar
             </button>
@@ -244,34 +330,64 @@ export function GraphVisualization() {
           </div>
         )}
 
-        {!loading && !error && !invalidColoring && data && data.nodos.length === 0 && (
-          <div className="state-container">
-            <p>El cronograma no contiene materias para mostrar.</p>
-          </div>
-        )}
-
-        {!loading && !error && !invalidColoring && !graphError && data && data.nodos.length > 0 && (
+        {!isInitialLoading && !error && !invalidColoring && !graphError && data && (
           <>
-            <div
-              className="graph-canvas"
-              ref={graphElement}
-              role="img"
-              aria-label={`Grafo con ${data.cantidad_nodos} materias y ${data.cantidad_aristas} conflictos`}
-            />
+            <div className="graph-viewport-wrapper">
+              <div
+                className="graph-canvas"
+                ref={graphElement}
+                role="img"
+                aria-label={`Grafo con ${data.cantidad_nodos} materias y ${data.cantidad_aristas} conflictos activos para umbral ${activeUmbral}`}
+              />
+
+              {isUpdatingGraph && (
+                <div className="graph-updating-overlay" aria-live="polite">
+                  <span className="btn-spinner" />
+                  <span>Recalculando para τ = {activeUmbral}...</span>
+                </div>
+              )}
+
+              <div className="graph-actions-bar">
+                <button
+                  type="button"
+                  className="btn-graph-action"
+                  onClick={handleFitView}
+                  title="Ajustar y centrar la vista del grafo"
+                >
+                  <svg
+                    className="action-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                  </svg>
+                  Ajustar vista
+                </button>
+              </div>
+            </div>
+
             <div className="graph-legend" aria-label="Leyenda de turnos">
-              <strong>Turnos</strong>
-              {turnos.map((turno) => (
-                <span className="legend-item" key={turno}>
-                  <span
-                    className="legend-color"
-                    style={{ backgroundColor: turnoColor(turno) }}
-                  />
-                  Turno {turno + 1}
+              <div className="legend-title-wrapper">
+                <strong>Turnos ({turnos.length}):</strong>
+                <span className="legend-edge">
+                  El grosor de la arista indica el peso del conflicto
                 </span>
-              ))}
-              <span className="legend-edge">
-                El grosor de la arista indica el peso del conflicto
-              </span>
+              </div>
+              <div className="legend-items-grid">
+                {turnos.map((turno) => (
+                  <span className="legend-item" key={turno}>
+                    <span
+                      className="legend-color"
+                      style={{ backgroundColor: turnoColor(turno) }}
+                    />
+                    Turno {turno + 1}
+                  </span>
+                ))}
+              </div>
             </div>
           </>
         )}
