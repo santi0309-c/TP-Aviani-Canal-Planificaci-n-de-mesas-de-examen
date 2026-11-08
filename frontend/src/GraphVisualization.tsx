@@ -1,6 +1,7 @@
 import type { Core, EdgeSingular, ElementDefinition } from 'cytoscape'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { postCronograma } from './api'
+import { turnoColor } from './colors'
 import type { CronogramaResponse } from './types'
 import { UmbralSelector } from './UmbralSelector'
 import { useApiRequest } from './useApiRequest'
@@ -17,33 +18,11 @@ export interface GraphVisualizationProps {
   initialUmbral?: number
   umbral?: number
   onUmbralChange?: (umbral: number) => void
-}
-
-function turnoColor(turno: number): string {
-  const hue = (turno * 137.508) % 360
-  const chroma = (1 - Math.abs(2 * 0.48 - 1)) * 0.72
-  const hueSection = hue / 60
-  const secondary = chroma * (1 - Math.abs((hueSection % 2) - 1))
-  const rgb =
-    hueSection < 1
-      ? [chroma, secondary, 0]
-      : hueSection < 2
-        ? [secondary, chroma, 0]
-        : hueSection < 3
-          ? [0, chroma, secondary]
-          : hueSection < 4
-            ? [0, secondary, chroma]
-            : hueSection < 5
-              ? [secondary, 0, chroma]
-              : [chroma, 0, secondary]
-  const lightnessOffset = 0.48 - chroma / 2
-  const channels = rgb.map((channel) =>
-    Math.round((channel + lightnessOffset) * 255)
-      .toString(16)
-      .padStart(2, '0'),
-  )
-
-  return `#${channels.join('')}`
+  cronograma?: CronogramaResponse | null
+  loading?: boolean
+  error?: string | null
+  status?: number | null
+  onRetry?: () => void
 }
 
 function coloringError(cronograma: CronogramaResponse): string | null {
@@ -160,6 +139,11 @@ export function GraphVisualization({
   initialUmbral = 15,
   umbral: externalUmbral,
   onUmbralChange,
+  cronograma: propCronograma,
+  loading: propLoading,
+  error: propError,
+  status: propStatus,
+  onRetry: propOnRetry,
 }: GraphVisualizationProps = {}) {
   const [internalUmbral, setInternalUmbral] = useState<number>(initialUmbral)
   const activeUmbral = externalUmbral !== undefined ? externalUmbral : internalUmbral
@@ -174,13 +158,30 @@ export function GraphVisualization({
     [externalUmbral, onUmbralChange],
   )
 
+  const isControlled = propCronograma !== undefined
+
   const loadCronograma = useCallback(
     (signal: AbortSignal) => postCronograma({ umbral: activeUmbral }, signal),
     [activeUmbral],
   )
 
-  const { data, loading, error, status, execute } =
-    useApiRequest<CronogramaResponse>(loadCronograma)
+  const internalApi = useApiRequest<CronogramaResponse>(
+    isControlled ? undefined : loadCronograma,
+  )
+
+  const data = isControlled ? propCronograma : internalApi.data
+  const loading = isControlled ? Boolean(propLoading) : internalApi.loading
+  const error = isControlled ? (propError ?? null) : internalApi.error
+  const status = isControlled ? (propStatus ?? null) : internalApi.status
+
+  const handleRetry = useCallback(() => {
+    if (propOnRetry) {
+      propOnRetry()
+    } else {
+      void internalApi.execute(loadCronograma).catch(() => {})
+    }
+  }, [propOnRetry, internalApi, loadCronograma])
+
   const graphElement = useRef<HTMLDivElement>(null)
   const graphInstance = useRef<Core | null>(null)
   const [graphError, setGraphError] = useState<string | null>(null)
@@ -351,7 +352,7 @@ export function GraphVisualization({
             <button
               className="btn btn-primary"
               type="button"
-              onClick={() => void execute(loadCronograma).catch(() => {})}
+              onClick={handleRetry}
             >
               Reintentar
             </button>
