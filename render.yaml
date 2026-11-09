@@ -1,34 +1,21 @@
-# ==============================================================================
-# Blueprint de Render (render.yaml)
-# Despliegue automático de Backend (FastAPI) y Frontend (React + Vite)
-# Documentación: https://render.com/docs/blueprint-spec
-# ==============================================================================
-
 services:
-  # ----------------------------------------------------------------------------
-  # 1. Backend: API REST con FastAPI (Uvicorn)
-  # ----------------------------------------------------------------------------
+  # Backend: API REST con FastAPI (Uvicorn)
   - type: web
     name: tp-mesas-backend
     runtime: python
     region: ohio
-    plan: free
+    plan: starter
     rootDir: backend
     buildCommand: pip install -r requirements.txt && python -m app.ml.train --data data/pares_materias.csv --out models/modelo.joblib
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
-      - key: CORS_ALLOW_ALL
-        value: "false"
 
-  # ----------------------------------------------------------------------------
-  # 2. Frontend: Aplicación Web en React + Vite (Static Site)
-  # ----------------------------------------------------------------------------
+  # Frontend: React + Vite (Static Site - no region, no plan)
   - type: web
     name: tp-mesas-frontend
     runtime: static
-    plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
