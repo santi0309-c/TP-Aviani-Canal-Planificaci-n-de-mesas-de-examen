@@ -1,10 +1,5 @@
 # Sección de Uso de Asistentes de Inteligencia Artificial
 
-**Integrantes:** Valentino Aviani (Legajo 51522) · Santiago Cañal (Legajo 50875)  
-**Cátedra:** Inteligencia Artificial / Algoritmos y Estructuras de Datos — UTN FRRo  
-**Proyecto:** Planificación de Mesas de Examen mediante Grafos y Machine Learning  
-**Fecha:** Noviembre de 2026  
-
 ---
 
 ## 1. Introducción y Criterio General
@@ -111,4 +106,3 @@ El uso de asistentes requiere una actitud crítica permanente. Durante el desarr
 - **Criterio algorítmico y matemático:** La IA tiende a ofrecer respuestas estándar que suenan convincentes pero que a menudo violan sutilezas teóricas (como llamar "óptimo" a un algoritmo voraz) o no se adaptan a las restricciones de la cátedra.
 - **Coherencia global del sistema:** Cada prompt se responde de forma aislada; la IA no "entiende" la totalidad del pipeline (dataset $\to$ regresión $\to$ filtrado $\to$ grafo $\to$ coloreo $\to$ frontend). La integración y el diseño de extremo a extremo requirieron la visión completa de los autores.
 
-**Conclusión:** Las herramientas de IA son de gran utilidad cuando quien las opera domina los fundamentos teóricos y tiene la capacidad de auditar cada línea de código sugerida. Utilizadas con criterio y pensamiento crítico, mejoran la productividad del estudiante sin comprometer el aprendizaje ni la autoría académica del proyecto.

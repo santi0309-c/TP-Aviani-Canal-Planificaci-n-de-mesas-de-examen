@@ -1,19 +1,5 @@
 # Planificación de Mesas de Examen mediante Grafos y Machine Learning
 
-> **Trabajo Práctico Final — Inteligencia Artificial / Algoritmos y Estructuras de Datos**  
-> UTN — Facultad Regional Rosario (FRRo)
-
----
-
-| Campo | Detalle |
-|---|---|
-| **Integrantes** | Valentino Aviani · Legajo 51522 |
-| | Santiago Cañal · Legajo 50875 |
-| **Cátedra** | Inteligencia Artificial / Algoritmos y Estructuras de Datos |
-| **Institución** | UTN FRRo |
-| **Fecha de entrega** | Noviembre de 2026 |
-| **Repositorio** | `TP-Aviani-Canal-Planificaci-n-de-mesas-de-examen` |
-
 ---
 
 ## Índice
@@ -385,6 +371,3 @@ Usamos GitHub Copilot y ChatGPT principalmente como acelerador en tres áreas:
 
 **Un caso donde la IA se equivocó:** ChatGPT sugirió usar `nx.coloring.greedy_color(G, strategy='largest_first')` de NetworkX directamente. Lo descartamos porque necesitábamos control explícito sobre el orden de coloreo (Welsh-Powell con grado descendente) y la función de NetworkX no expone ese orden de forma directa. Implementamos el algoritmo a mano en `coloring.py`.
 
----
-
-*Informe generado en Noviembre de 2026 — UTN FRRo*
