@@ -28,7 +28,6 @@ services:
   - type: web
     name: tp-mesas-frontend
     runtime: static
-    region: ohio
     plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
