@@ -34,3 +34,13 @@ def test_cors_headers():
     )
     assert response.status_code == 200
     assert response.headers.get("access-control-allow-origin") == "http://localhost:5173"
+
+
+def test_cors_render_origin():
+    """Verifica que CORS permita solicitudes desde dominios alojados en Render (*.onrender.com)."""
+    response = client.get(
+        "/health",
+        headers={"Origin": "https://tp-mesas-frontend.onrender.com"},
+    )
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == "https://tp-mesas-frontend.onrender.com"

@@ -8,6 +8,7 @@ Documentación Swagger interactiva:
 """
 
 import json
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -101,13 +102,20 @@ app = FastAPI(
     version="0.3.0",
 )
 
-# Configuración de CORS para integración fluida con Vite / React
+# Configuración de CORS para integración fluida con Vite / React y despliegue en Render
+allowed_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+]
+custom_origins = os.getenv("CORS_ORIGINS", "")
+if custom_origins:
+    allowed_origins.extend([o.strip() for o in custom_origins.split(",") if o.strip()])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.onrender\.com",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -302,3 +310,11 @@ def post_cronograma(request: CronogramaRequest) -> CronogramaResponse:
         es_valido=es_valido,
         es_coloreo_valido=es_valido,
     )
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=False)
+
