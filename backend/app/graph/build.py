@@ -1,8 +1,8 @@
 """
-build.py — Construcción del grafo de conflictos a partir de predicciones (Ticket T13).
+build.py — Construcción del grafo de conflictos a partir de las predicciones del modelo.
 
-Construye un grafo no dirigido con networkx donde cada materia es un nodo y existe una
-arista ponderada entre dos materias si el conflicto predicho supera el umbral configurado.
+Cada materia es un nodo y agregamos una arista entre dos materias si la cantidad
+estimada de estudiantes afectados supera el umbral configurado.
 """
 
 import json

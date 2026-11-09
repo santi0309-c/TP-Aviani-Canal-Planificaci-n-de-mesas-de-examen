@@ -1,12 +1,12 @@
 """
-train.py — Entrenamiento, ajuste de hiperparámetros y comparación de modelos (Ticket T09).
+train.py — Entrenamiento y comparación de modelos de regresión.
 
-Compara 3 familias de modelos de regresión:
-1. Regresión Lineal (baseline paramétrico e interpretable)
-2. Árbol de Decisión (no lineal con particiones ortogonales)
-3. K-Nearest Neighbors (no paramétrico basado en distancias)
+Compara 3 modelos para predecir cantidad de estudiantes afectados:
+1. Regresión Lineal
+2. Árbol de Decisión
+3. K-Nearest Neighbors (KNN)
 
-Uso por CLI:
+Uso:
     python -m app.ml.train --data data/pares_materias.csv --out models/modelo.joblib
 """
 
@@ -16,7 +16,7 @@ from pathlib import Path
 import sys
 from typing import Any, Dict, Tuple
 
-# Rutas predeterminadas robustas relativas a la ubicación del script
+# Rutas por defecto relativas al backend
 BASE_DIR = Path(__file__).resolve().parent  # backend/app/ml
 BACKEND_DIR = BASE_DIR.parents[1]           # backend
 DEFAULT_DATA = BACKEND_DIR / "data" / "pares_materias.csv"
@@ -43,10 +43,7 @@ DEFAULT_SEED = 42
 
 
 def get_candidate_models(seed: int = DEFAULT_SEED) -> Dict[str, Tuple[Any, Dict[str, Any]]]:
-    """Define los 3 modelos candidatos con sus pipelines y grillas de hiperparámetros.
-
-    Cada modelo se encapsula en un Pipeline con el ColumnTransformer de T08.
-    """
+    """Define los 3 modelos candidatos con sus pipelines y grillas de hiperparámetros."""
     candidates = {
         "Regresión Lineal": (
             Pipeline([
@@ -217,7 +214,7 @@ def train(
     print(format_table(results))
     print()
 
-    print("--- Hiperparámetros Óptimos ---")
+    print("--- Mejores hiperparámetros encontrados ---")
     for name, r in results.items():
         print(f"• {name}: {r['best_params']}")
     print()

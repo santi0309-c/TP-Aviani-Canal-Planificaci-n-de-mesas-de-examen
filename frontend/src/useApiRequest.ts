@@ -68,7 +68,7 @@ export function useApiRequest<T>(initialRequest?: ApiRequest<T>) {
     void Promise.resolve().then(() => {
       if (active) {
         void execute(initialRequest).catch(() => {
-          // The hook exposes the failure through its error and status state.
+          // El estado de error ya lo maneja el hook en execute
         })
       }
     })

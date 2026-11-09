@@ -27,7 +27,7 @@ export function MetricsPanel({ cronograma, isUpdating = false }: MetricsPanelPro
     void executeMetricas(loadMetricas).catch(() => {})
   }, [executeMetricas, loadMetricas])
 
-  // Cálculos dinámicos del cronograma reactivos al umbral τ
+  // KPIs del cronograma, se recalculan cada vez que cambia el umbral τ
   const kpis = useMemo(() => {
     if (!cronograma) {
       return null

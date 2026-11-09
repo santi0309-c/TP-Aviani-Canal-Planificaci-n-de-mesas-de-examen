@@ -1,9 +1,9 @@
 """
-main.py — Servidor y API REST con FastAPI (Tickets T02, T17 y T18).
+main.py — API del backend con FastAPI.
 
-Para ejecutar localmente:
+Para correrlo local:
     uvicorn app.main:app --reload --port 8000
-Documentación Swagger interactiva:
+Documentación interactiva de los endpoints:
     http://localhost:8000/docs
 """
 
@@ -27,13 +27,13 @@ from app.schemas import (
     NodoCronograma,
 )
 
-# Rutas predeterminadas robustas relativas a la ubicación del script
+# Rutas relativas a la ubicación del script
 BASE_DIR = Path(__file__).resolve().parent      # backend/app
 BACKEND_DIR = BASE_DIR.parent                   # backend
 MATERIAS_JSON_PATH = BACKEND_DIR / "data" / "materias.json"
 METRICAS_JSON_PATH = BACKEND_DIR / "models" / "metricas.json"
 
-# Variables para almacenamiento en caché en memoria
+# Cache en memoria para evitar recargar archivos en cada request
 _MATERIAS_CACHE: Optional[List[Dict[str, Any]]] = None
 _PREDICCIONES_CACHE: Optional[List[Dict[str, Any]]] = None
 
@@ -212,20 +212,20 @@ def get_metricas() -> MetricasResponse:
     tags=["cronograma"],
     summary="Construir grafo y generar cronograma de exámenes",
     description=(
-        "Endpoint integrador central del proyecto. Orquesta el pipeline completo: "
-        "(1) Infiere los conflictos continuos mediante el modelo de regresión entrenado, "
-        "(2) Construye el grafo no dirigido filtrando aristas con conflicto predicho ≥ umbral τ, "
-        "(3) Aplica el algoritmo voraz Welsh-Powell para asignar turnos disjuntos a materias adyacentes, "
-        "(4) Retorna el cronograma validado junto a los nodos coloreados y aristas de conflicto."
+        "Corre el pipeline completo del proyecto: "
+        "(1) usa el modelo entrenado para inferir conflictos entre pares de materias, "
+        "(2) construye el grafo filtrando aristas con conflicto predicho >= umbral τ, "
+        "(3) aplica Welsh-Powell para asignar turnos sin solapamientos, "
+        "(4) devuelve el cronograma con nodos coloreados y aristas de conflicto."
     ),
 )
 def post_cronograma(request: CronogramaRequest) -> CronogramaResponse:
     """
-    Genera el cronograma de exámenes óptimo para un umbral dado.
+    Genera el cronograma de exámenes para un umbral dado.
 
-    El umbral τ modula el compromiso (trade-off) del problema:
-    - Umbral bajo: Más aristas de conflicto → más turnos requeridos, menor riesgo de superposición.
-    - Umbral alto: Menos aristas → menor cantidad de turnos requeridos, posibles conflictos menores.
+    El umbral τ controla el trade-off del problema:
+    - Umbral bajo: más aristas de conflicto → más turnos, menos riesgo de superposición.
+    - Umbral alto: menos aristas → menos turnos, pero pueden quedar conflictos sin resolver.
     """
     from app.graph.build import build_conflict_graph
     from app.graph.coloring import (
@@ -247,20 +247,20 @@ def post_cronograma(request: CronogramaRequest) -> CronogramaResponse:
             detail="No se pudo generar el cronograma: no se encontró el modelo o los datos requeridos.",
         ) from exc
 
-    # 2. Construir el grafo de conflictos (asegurando materias aisladas)
+    # 2. Armamos el grafo de conflictos (incluyendo materias sin conflictos)
     G = build_conflict_graph(
         predictions=predicciones,
         umbral=umbral,
         materias=materias_catalog,
     )
 
-    # 3. Aplicar coloreo greedy con heurística Welsh-Powell
+    # 3. Asignamos turnos con coloreo greedy (Welsh-Powell)
     coloring = greedy_coloring(G)
 
-    # 4. Validar factibilidad formal del coloreo
+    # 4. Chequeamos que ninguna materia conectada comparta turno
     es_valido = bool(validate_coloring(G, coloring))
 
-    # 5. Métricas y agrupaciones
+    # 5. Calculamos cuántos turnos se usaron y agrupamos materias por turno
     num_turnos = get_num_turnos(coloring)
     turnos_agrupados = group_by_turno(coloring)
 
