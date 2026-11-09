@@ -7,9 +7,16 @@ import type {
   MetricasResponse,
 } from './types'
 
-export const API_BASE_URL = (
+const rawApiUrl = (
   import.meta.env.VITE_API_URL || 'http://localhost:8000'
-).replace(/\/+$/, '')
+).trim()
+
+const normalizedApiUrl =
+  rawApiUrl.startsWith('http://') || rawApiUrl.startsWith('https://')
+    ? rawApiUrl
+    : `https://${rawApiUrl}`
+
+export const API_BASE_URL = normalizedApiUrl.replace(/\/+$/, '')
 
 export class ApiError extends Error {
   public readonly status: number
