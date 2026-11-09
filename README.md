@@ -339,13 +339,13 @@ La suite cubre 166 casos en total. Se prueban, entre otras cosas:
 
 ## 12. Uso de IA
 
-Usamos asistentes de IA (principalmente Claude y GitHub Copilot) a lo largo del proyecto:
+Se detalla en profundidad en el informe técnico: [informe/uso_ia.md](informe/uso_ia.md).
 
-- **Herramientas:** Claude (Anthropic) y GitHub Copilot.
-- **Usada para:** generar el esqueleto inicial del frontend en React, sugerir la estructura de los tests de pytest, debuggear errores puntuales de Cytoscape.js (props que cambiaron entre versiones), y reformular las descripciones del README.
-- **No usada para:** el diseño del algoritmo de coloreo greedy, la lógica de predicción del modelo, la arquitectura del sistema ni las decisiones de diseño de los endpoints.
-- **Casos en que se equivocó:** propuso nombres de props de Cytoscape que no existían en la versión que instalamos, generó imports incorrectos en TypeScript que tuvimos que corregir a mano, y en un momento sugirió presentar el coloreo greedy como "óptimo" cuando no lo es (lo corregimos).
-
+**Resumen:**
+- **Herramientas:** Claude (Anthropic), GitHub Copilot (VS Code) y ChatGPT (OpenAI).
+- **Usada para:** scaffolding de esquemas Pydantic y componentes base de React, parametrización de fixtures en pytest (grafos sintéticos NetworkX), consultas de CSS/Flexbox y redacción inicial de documentación.
+- **No usada para:** formulación matemática del problema, diseño del algoritmo de coloreo greedy Welsh-Powell, la decisión de usar regresión continua en lugar de clasificación fija, ni la validación formal de no-adyacencia.
+- **Casos en que se equivocó:** afirmó erróneamente que el algoritmo goloso garantizaba el coloreo óptimo (corregido por ser NP-completo), sugirió métodos inexistentes en la API de Cytoscape.js v3 (`updateData`), y propuso inicialmente una clasificación binaria que hubiera impedido variar el umbral $\tau$ dinámicamente en el frontend.
 ## 13. Limitaciones y extensiones
 
 **Limitaciones conocidas**
